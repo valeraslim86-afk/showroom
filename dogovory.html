@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Реестр договоров — пример дашборда</title>
+<style>
+:root{
+  color-scheme:light;
+  --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834;
+  --critical:#d03b3b; --warning:#fab219; --good:#0ca30c; --serious:#ec835a;
+  --crit-wash:#fdeceb; --warn-wash:#fdf3df; --good-wash:#e9f6e9; --info-wash:#eaf2fc;
+  --heat-0:#f0efec; --heat-1:#cde2fb; --heat-2:#9ec5f4; --heat-3:#5598e7; --heat-4:#2a78d6; --heat-5:#184f95;
+  --heat-ink-hi:#fff; --heat-ink-lo:#0b0b0b;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926;
+    --crit-wash:#2a1616; --warn-wash:#2b2413; --good-wash:#12240f; --info-wash:#111e2e;
+    --heat-0:#383835; --heat-1:#104281; --heat-2:#184f95; --heat-3:#256abf; --heat-4:#3987e5; --heat-5:#86b6ef;
+    --heat-ink-hi:#0b0b0b; --heat-ink-lo:#fff;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926;
+  --crit-wash:#2a1616; --warn-wash:#2b2413; --good-wash:#12240f; --info-wash:#111e2e;
+  --heat-0:#383835; --heat-1:#104281; --heat-2:#184f95; --heat-3:#256abf; --heat-4:#3987e5; --heat-5:#86b6ef;
+  --heat-ink-hi:#0b0b0b; --heat-ink-lo:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+h1{font-size:26px;margin:0 0 6px}
+h2{font-size:19px;margin:0 0 4px}
+h3{font-size:16px;margin:0 0 6px}
+p{margin:0 0 10px}
+.sub{color:var(--ink2);font-size:14px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:18px 20px;margin:16px 0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+button.theme{background:var(--surface);color:var(--ink2);border:1px solid var(--ring);
+  border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;font-size:13px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:16px 0}
+.tile{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:14px 16px;
+  border-left-width:4px;border-left-style:solid;border-left-color:var(--axis)}
+.tile.crit{border-left-color:var(--critical);background:var(--crit-wash)}
+.tile.warn{border-left-color:var(--warning);background:var(--warn-wash)}
+.tile.good{border-left-color:var(--good);background:var(--good-wash)}
+.tile.info{border-left-color:var(--s1);background:var(--info-wash)}
+.tile .lbl{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.tile .val{font-size:28px;font-weight:600;margin:6px 0 2px}
+.tile .val small{font-size:14px;font-weight:400;color:var(--ink2)}
+.tile .sum{font-size:14px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:2px 0 10px;font-size:13px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+.chartbox{overflow-x:auto}
+svg{display:block;max-width:100%}
+.tt{position:fixed;z-index:50;pointer-events:none;background:var(--surface);color:var(--ink);
+  border:1px solid var(--ring);border-radius:8px;padding:8px 10px;font-size:13px;
+  box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;max-width:300px}
+.tt b{display:block;margin-bottom:4px}
+.tt .row{display:flex;justify-content:space-between;gap:14px;font-variant-numeric:tabular-nums}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.tools input,.tools select{font:inherit;font-size:14px;padding:7px 10px;border-radius:8px;
+  border:1px solid var(--ring);background:var(--plane);color:var(--ink)}
+.tools input{min-width:230px}
+.tblbox{overflow-x:auto;border:1px solid var(--ring);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--grid);white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface);color:var(--ink2);font-weight:600;
+  font-size:13px;cursor:pointer;user-select:none}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+/* ❗Переносимые ячейки в широкой таблице раздувают строку втрое против высоты
+   своего текста (143px вместо 38 на реальных данных). Для длинных значений лучше
+   не переносить, а сокращать текст в данных - таблица и так скроллится вбок. */
+td.wrap{white-space:normal;max-width:280px;line-height:1.35}
+tbody tr:hover{background:var(--plane)}
+tfoot td{font-weight:600;border-top:1px solid var(--axis);border-bottom:none;background:var(--surface)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;border:1px solid var(--ring);color:var(--ink2)}
+.pill.crit{border-color:var(--critical);color:var(--critical)}
+.pill.good{border-color:var(--good);color:var(--good)}
+.pill.warn{border-color:var(--warning);color:var(--ink2)}
+details{margin:16px 0}
+details>summary{cursor:pointer;list-style:none;background:var(--surface);border:1px solid var(--ring);
+  border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+details>summary::-webkit-details-marker{display:none}
+details[open]>summary{border-radius:12px 12px 0 0;border-bottom:none}
+.body{background:var(--surface);border:1px solid var(--ring);border-top:none;
+  border-radius:0 0 12px 12px;padding:4px 18px 18px}
+summary .mark{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+summary .arrow{color:var(--muted);margin-left:auto;font-size:13px}
+details[open] summary .arrow::after{content:"свернуть"}
+details:not([open]) summary .arrow::after{content:"развернуть"}
+.note{background:var(--plane);border-left:3px solid var(--axis);border-radius:0 8px 8px 0;
+  padding:10px 14px;margin:10px 0;font-size:14px;color:var(--ink2)}
+.note.crit{border-left-color:var(--critical)}
+.note.warn{border-left-color:var(--warning)}
+.note.good{border-left-color:var(--good)}
+ul.steps{margin:8px 0 4px;padding-left:20px}
+ul.steps li{margin-bottom:6px}
+.empty{padding:16px;color:var(--muted)}
+/* тепловая карта */
+table.heat{border-collapse:separate;border-spacing:2px;width:auto;font-size:13px}
+table.heat th{position:static;background:none;cursor:default;border:none;padding:4px 8px;white-space:nowrap}
+table.heat th.col{font-size:12px;text-align:center}
+table.heat td{border:none;padding:0}
+table.heat .cell{width:100%;min-width:76px;height:40px;border-radius:6px;display:flex;
+  align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-size:12px;cursor:default}
+table.heat .cell.link{cursor:pointer}
+table.heat .cell.empty{background:transparent;color:var(--muted)}
+table.heat .cell.self{background:var(--grid)}
+table.heat .cell.ok{background:var(--good-wash);color:var(--ink2);border:1px solid var(--good)}
+@media print{
+  body{background:#fff}
+  details{break-inside:avoid} details:not([open])>summary{border-radius:12px}
+  .theme{display:none}
+}
+
+.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.tile .val{margin-bottom:2px}
+.stack{display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid var(--ring);margin:10px 0}
+.stack .seg{display:block;height:100%}
+.stlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:4px}
+.stlegend span{display:inline-flex;align-items:center;gap:7px}
+.chart{min-width:640px}
+h2{margin-top:2px}
+.demo{background:var(--plane);border-left:3px solid var(--warning);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0;font-size:13px;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+  <div>
+    <h1>Реестр договоров — пример дашборда</h1>
+    <p class="sub">Собран из справочника «Договоры» 1С и папки со сканами на сервере:
+       покрытие сканами, дубли, расхождения по назначению платежа.</p>
+    <p class="muted">Один HTML-файл. Открывается на телефоне и на компьютере, без интернета,
+       без установки программ, без входа в чужой сервис.</p>
+  </div>
+  <button id="theme" class="theme">сменить тему</button>
+</div>
+
+<div class="demo">Контрагенты и цифры — демонстрационные, специально придуманные для примера.
+  Структура и вид — рабочие: так же собирается реестр по реальной базе.</div>
+
+<div class="tiles"><div class="tile info"><div class="lbl">Договоров в справочнике</div><div class="val">428</div><div class=sum>после чистки дублей</div></div>
+<div class="tile good"><div class="lbl">Со сканом</div><div class="val">361</div><div class=sum>покрытие 84%</div></div>
+<div class="tile bad"><div class="lbl">Без скана</div><div class="val">67</div><div class=sum>по ним запрошены оригиналы</div></div>
+<div class="tile info"><div class="lbl">С движениями за год</div><div class="val">213</div><div class=sum>остальные - архив</div></div>
+<div class="tile warn"><div class="lbl">Кандидатов в дубли</div><div class="val">4</div><div class=sum>с рекомендацией, что делать</div></div>
+<div class="tile warn"><div class="lbl">Без даты в карточке</div><div class="val">15</div><div class=sum>дата берётся из имени файла скана</div></div></div>
+
+<div class="card">
+  <h2>Покрытие договоров сканами</h2>
+  <p class="muted">Скан привязывается к договору автоматически — по имени файла вида
+     «ГГГГ ММ ДД Продавец - Покупатель.pdf». Оттуда же берётся дата, если в карточке её нет.</p>
+  <div class="stack"><span class="seg" style="width:84.35%;background:var(--good)" title="Со сканом: 361 ₽ (84%)"></span><span class="seg" style="width:15.65%;background:var(--bad)" title="Без скана: 67 ₽ (16%)"></span></div><div class="stlegend"><span><i class="swatch" style="background:var(--good)"></i>со сканом 361</span><span><i class="swatch" style="background:var(--bad)"></i>без скана 67</span></div>
+</div>
+
+<div class="card">
+  <h2>Разрез по видам договора</h2>
+  <p class="muted">Видно, где дыра: по прочим договорам сканов почти нет, по покупателям —
+     почти полное покрытие.</p>
+  <div class="legend"><span><i class="swatch" style="background:var(--s2)"></i>всего договоров</span><span><i class="swatch" style="background:var(--good)"></i>из них со сканом</span></div><div class="chartbox"><svg class="chart" viewBox="0 0 402 260" width="402" height="260" role="img" preserveAspectRatio="xMinYMid meet"><line x1="58" x2="388" y1="208.0" y2="208.0" stroke="var(--axis)" stroke-width="1"/><text x="50" y="212.0" text-anchor="end" fill="var(--muted)" font-size="11">0</text><line x1="58" x2="388" y1="184.0" y2="184.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="188.0" text-anchor="end" fill="var(--muted)" font-size="11">25</text><line x1="58" x2="388" y1="160.0" y2="160.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="164.0" text-anchor="end" fill="var(--muted)" font-size="11">50</text><line x1="58" x2="388" y1="136.0" y2="136.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="140.0" text-anchor="end" fill="var(--muted)" font-size="11">75</text><line x1="58" x2="388" y1="112.0" y2="112.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="116.0" text-anchor="end" fill="var(--muted)" font-size="11">100</text><line x1="58" x2="388" y1="88.0" y2="88.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="92.0" text-anchor="end" fill="var(--muted)" font-size="11">125</text><line x1="58" x2="388" y1="64.0" y2="64.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="68.0" text-anchor="end" fill="var(--muted)" font-size="11">150</text><line x1="58" x2="388" y1="40.0" y2="40.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="44.0" text-anchor="end" fill="var(--muted)" font-size="11">175</text><line x1="58" x2="388" y1="16.0" y2="16.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="20.0" text-anchor="end" fill="var(--muted)" font-size="11">200</text><rect x="68.0" y="29.4" width="13" height="178.6" rx="3" fill="var(--s2)"><title>С покупателем: всего 186, со сканом 171 (92%)</title></rect><rect x="84.0" y="43.8" width="13" height="164.2" rx="3" fill="var(--good)"><title>С покупателем: всего 186, со сканом 171 (92%)</title></rect><text x="82.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 82.5 224)">Покупатели</text><rect x="123.0" y="62.1" width="13" height="145.9" rx="3" fill="var(--s2)"><title>С поставщиком: всего 152, со сканом 124 (82%)</title></rect><rect x="139.0" y="89.0" width="13" height="119.0" rx="3" fill="var(--good)"><title>С поставщиком: всего 152, со сканом 124 (82%)</title></rect><text x="137.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 137.5 224)">Поставщики</text><rect x="178.0" y="175.4" width="13" height="32.6" rx="3" fill="var(--s2)"><title>Аренда: всего 34, со сканом 30 (88%)</title></rect><rect x="194.0" y="179.2" width="13" height="28.8" rx="3" fill="var(--good)"><title>Аренда: всего 34, со сканом 30 (88%)</title></rect><text x="192.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 192.5 224)">Аренда</text><rect x="233.0" y="181.1" width="13" height="26.9" rx="3" fill="var(--s2)"><title>Услуги связи и ПО: всего 28, со сканом 21 (75%)</title></rect><rect x="249.0" y="187.8" width="13" height="20.2" rx="3" fill="var(--good)"><title>Услуги связи и ПО: всего 28, со сканом 21 (75%)</title></rect><text x="247.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 247.5 224)">Связь, ПО</text><rect x="288.0" y="192.6" width="13" height="15.4" rx="3" fill="var(--s2)"><title>Лизинг: всего 16, со сканом 12 (75%)</title></rect><rect x="304.0" y="196.5" width="13" height="11.5" rx="3" fill="var(--good)"><title>Лизинг: всего 16, со сканом 12 (75%)</title></rect><text x="302.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 302.5 224)">Лизинг</text><rect x="343.0" y="196.5" width="13" height="11.5" rx="3" fill="var(--s2)"><title>Прочее: всего 12, со сканом 3 (25%)</title></rect><rect x="359.0" y="205.1" width="13" height="2.9" rx="3" fill="var(--good)"><title>Прочее: всего 12, со сканом 3 (25%)</title></rect><text x="357.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 357.5 224)">Прочее</text></svg></div><div class="tblbox"><table><thead><tr><th class="" data-k="вид">Вид договора</th><th class="num" data-k="всего">Всего</th><th class="num" data-k="со сканом">Со сканом</th><th class="num" data-k="без скана">Без скана</th><th class="" data-k="покрытие">Покрытие</th></tr></thead><tbody><tr><td class="">С покупателем</td><td class="num">186</td><td class="num">171</td><td class="num">15</td><td class="">92%</td></tr><tr><td class="">С поставщиком</td><td class="num">152</td><td class="num">124</td><td class="num">28</td><td class="">82%</td></tr><tr><td class="">Аренда</td><td class="num">34</td><td class="num">30</td><td class="num">4</td><td class="">88%</td></tr><tr><td class="">Услуги связи и ПО</td><td class="num">28</td><td class="num">21</td><td class="num">7</td><td class="">75%</td></tr><tr><td class="">Лизинг</td><td class="num">16</td><td class="num">12</td><td class="num">4</td><td class="">75%</td></tr><tr><td class="">Прочее</td><td class="num">12</td><td class="num">3</td><td class="num">9</td><td class="">25%</td></tr></tbody><tfoot><tr><td>6 стр.</td><td class="num">428</td><td></td><td></td><td></td></tr></tfoot></table></div>
+</div>
+
+<div class="card">
+  <h2>Реестр договоров</h2>
+  <p class="muted">Строки реестра: есть ли скан, сколько документов проведено, какой оборот.
+     Пустышки без документов и без скана видно сразу.</p>
+  <div class="tblbox"><table><thead><tr><th class="" data-k="контрагент">Контрагент</th><th class="" data-k="договор">Договор</th><th class="" data-k="вид">Вид</th><th class="" data-k="скан">Скан</th><th class="num" data-k="движений">Документов</th><th class="num" data-k="сумма">Оборот за год, ₽</th></tr></thead><tbody><tr><td class="">ООО «Верхневолжский арматурный завод»</td><td class="">№ 114/25 от 12.03.2025</td><td class="">С покупателем</td><td class="">есть</td><td class="num">46</td><td class="num">8 420 000</td></tr><tr><td class="">ООО «Ремстройсервис»</td><td class="">№ 7 от 09.01.2026</td><td class="">С поставщиком</td><td class="">есть</td><td class="num">31</td><td class="num">5 180 000</td></tr><tr><td class="">ИП Кириллов А. С.</td><td class="">№ 2026-04 от 01.04.2026</td><td class="">С поставщиком</td><td class="">нет</td><td class="num">18</td><td class="num">2 940 000</td></tr><tr><td class="">ООО «Северный склад»</td><td class="">аренда № 3-А от 01.02.2024</td><td class="">Аренда</td><td class="">есть</td><td class="num">30</td><td class="num">2 160 000</td></tr><tr><td class="">ООО «Гранит-Логистик»</td><td class="">№ 55 от 18.07.2025</td><td class="">С поставщиком</td><td class="">нет</td><td class="num">12</td><td class="num">1 770 000</td></tr><tr><td class="">АО «Ярсвязь»</td><td class="">№ С-2210 от 22.10.2023</td><td class="">Услуги связи и ПО</td><td class="">есть</td><td class="num">24</td><td class="num">640 000</td></tr><tr><td class="">ООО «Метизы и крепёж»</td><td class="">б/н</td><td class="">С поставщиком</td><td class="">нет</td><td class="num">0</td><td class="num">0</td></tr><tr><td class="">ООО «Промлизинг»</td><td class="">№ ЛД-0412 от 04.12.2024</td><td class="">Лизинг</td><td class="">есть</td><td class="num">20</td><td class="num">3 360 000</td></tr></tbody><tfoot><tr><td>8 стр.</td><td></td><td></td><td></td><td></td><td class="num">24 470 000</td></tr></tfoot></table></div>
+</div>
+
+<div class="card">
+  <h2>Дубли и мусор в справочнике</h2>
+  <p class="muted">Сравниваются договоры одного контрагента: номер, дата, наименование и то,
+     сколько документов на них ссылается. Обработка ничего не удаляет сама — предлагает решение,
+     а пометку на удаление ставит только по подтверждению.</p>
+  <div class="tblbox"><table><thead><tr><th class="" data-k="контрагент">Контрагент</th><th class="" data-k="пара">Что с чем совпало</th><th class="" data-k="статус">Вывод</th><th class="" data-k="что делать">Рекомендация</th></tr></thead><tbody><tr><td class="">ООО «Ремстройсервис»</td><td class="">№ 7 от 09.01.2026  /  № 7 от 09.01.2026</td><td class="">Дубль</td><td class="">оставить тот, где 31 документ, второй объединить</td></tr><tr><td class="">ООО «Гранит-Логистик»</td><td class="">№ 55 от 18.07.2025  /  № 5S от 18.07.2025</td><td class="">Дубль (опечатка)</td><td class="">объединить, оригинал - с движениями</td></tr><tr><td class="">ООО «Метизы и крепёж»</td><td class="">«б/н»  /  «Основной договор»</td><td class="">Мусор</td><td class="">пометить на удаление, документов нет</td></tr><tr><td class="">ООО «Верхневолжский арматурный завод»</td><td class="">№ 114/25 от 12.03.2025  /  ДС № 1 к 114/25</td><td class="">Проверить</td><td class="">похоже на договор и допсоглашение, не объединять</td></tr></tbody></table></div>
+</div>
+
+<div class="card">
+  <h2>Договор в документе не совпал с назначением платежа</h2>
+  <p class="muted">Проверено 27 140 строк банковских выписок — подсвечены те,
+     где в назначении указан один договор, а в документе выбран другой (или не выбран вовсе).
+     Это то, что глазами не ловится.</p>
+  <div class="tblbox"><table><thead><tr><th class="" data-k="документ">Документ</th><th class="" data-k="контрагент">Контрагент</th><th class="" data-k="в документе">Договор в документе</th><th class="" data-k="в назначении">Договор в назначении платежа</th><th class="num" data-k="сумма">Сумма, ₽</th></tr></thead><tbody><tr><td class="">Поступление на счёт № 3841 от 05.08.2026</td><td class="">ООО «Ремстройсервис»</td><td class="">№ 7 от 09.01.2026</td><td class="">№ 12 от 03.06.2026</td><td class="num">486 000</td></tr><tr><td class="">Списание с счёта № 2907 от 11.08.2026</td><td class="">ООО «Гранит-Логистик»</td><td class="">№ 55 от 18.07.2025</td><td class="">№ 61 от 02.02.2026</td><td class="num">213 400</td></tr><tr><td class="">Поступление на счёт № 3902 от 14.08.2026</td><td class="">ИП Кириллов А. С.</td><td class="">не заполнен</td><td class="">№ 2026-04 от 01.04.2026</td><td class="num">155 000</td></tr></tbody></table></div>
+</div>
+
+<div class="note">Как это устроено: обработка запускается прямо в 1С (внешняя, конфигурацию
+  не меняет и обновлениям не мешает), читает справочник и папку сканов, складывает результат
+  в форму и в этот файл. В базе ничего не меняется без подтверждения.</div>
+</div>
+<script>
+document.getElementById('theme')?.addEventListener('click',function(){
+  var d=document.documentElement.getAttribute('data-theme')==='dark' ||
+    (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', d?'light':'dark');
+});
+</script>
+</body>
+</html>
