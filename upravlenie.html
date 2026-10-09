@@ -3,214 +3,380 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Управленческая отчётность — пример дашборда</title>
+<title>Управленческая отчётность - пример дашборда</title>
+<meta name="description" content="Пример управленческого дашборда для собственника: выручка, прибыль, деньги, долги, расходы и воронка продаж на одном экране. Данные вымышленные.">
+<meta name="theme-color" content="#f4f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
 <style>
 :root{
   color-scheme:light;
-  --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
-  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
-  --s1:#2a78d6; --s2:#eb6834;
-  --critical:#d03b3b; --warning:#fab219; --good:#0ca30c; --serious:#ec835a;
-  --crit-wash:#fdeceb; --warn-wash:#fdf3df; --good-wash:#e9f6e9; --info-wash:#eaf2fc;
-  --heat-0:#f0efec; --heat-1:#cde2fb; --heat-2:#9ec5f4; --heat-3:#5598e7; --heat-4:#2a78d6; --heat-5:#184f95;
-  --heat-ink-hi:#fff; --heat-ink-lo:#0b0b0b;
+  --plane:#f4f4f1; --surface:#ffffff; --surface2:#f9f9f7; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e6e5df; --axis:#c3c2b7; --ring:rgba(11,11,11,.08); --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px -12px rgba(0,0,0,.12);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#4a3aa7;
+  --critical:#d03b3b; --warning:#fab219; --good:#0ca30c;
+  --good-wash:#e9f6e9; --crit-wash:#fdeceb; --info-wash:#eaf2fc; --warn-wash:#fdf3df;
+  --accent:#0b6b4f; --onfill:#fff;
 }
 @media (prefers-color-scheme:dark){
   :root:where(:not([data-theme="light"])){
     color-scheme:dark;
-    --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
-    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
-    --s1:#3987e5; --s2:#d95926;
-    --crit-wash:#2a1616; --warn-wash:#2b2413; --good-wash:#12240f; --info-wash:#111e2e;
-    --heat-0:#383835; --heat-1:#104281; --heat-2:#184f95; --heat-3:#256abf; --heat-4:#3987e5; --heat-5:#86b6ef;
-    --heat-ink-hi:#0b0b0b; --heat-ink-lo:#fff;
+    --plane:#0d0d0d; --surface:#1a1a19; --surface2:#222221; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#44443f; --ring:rgba(255,255,255,.09); --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -12px rgba(0,0,0,.6);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#9085e9;
+    --good-wash:#12240f; --crit-wash:#2a1616; --info-wash:#111e2e; --warn-wash:#2b2413;
+    --accent:#4cc79a;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
-  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
-  --s1:#3987e5; --s2:#d95926;
-  --crit-wash:#2a1616; --warn-wash:#2b2413; --good-wash:#12240f; --info-wash:#111e2e;
-  --heat-0:#383835; --heat-1:#104281; --heat-2:#184f95; --heat-3:#256abf; --heat-4:#3987e5; --heat-5:#86b6ef;
-  --heat-ink-hi:#0b0b0b; --heat-ink-lo:#fff;
+  --plane:#0d0d0d; --surface:#1a1a19; --surface2:#222221; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#44443f; --ring:rgba(255,255,255,.09); --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -12px rgba(0,0,0,.6);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#9085e9;
+  --good-wash:#12240f; --crit-wash:#2a1616; --info-wash:#111e2e; --warn-wash:#2b2413;
+  --accent:#4cc79a;
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
 body{margin:0;background:var(--plane);color:var(--ink);
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
-h1{font-size:26px;margin:0 0 6px}
-h2{font-size:19px;margin:0 0 4px}
-h3{font-size:16px;margin:0 0 6px}
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+h1{font-size:clamp(26px,4vw,38px);line-height:1.12;margin:0 0 10px;letter-spacing:-.02em}
+h2{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+h3{font-size:15px;margin:0 0 8px;color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:12px}
 p{margin:0 0 10px}
-.sub{color:var(--ink2);font-size:14px}
+.sub{color:var(--ink2);font-size:15px}
 .muted{color:var(--muted);font-size:13px}
-.card{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:18px 20px;margin:16px 0}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+small{font-weight:400;color:var(--muted)}
+
+/* шапка */
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--plane) 82%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ring)}
+.topbar .in{max-width:1180px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+.brand{font-weight:700;letter-spacing:-.01em;white-space:nowrap;display:flex;align-items:center;gap:10px}
+.brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--s1),var(--s3));display:inline-block}
+nav.sections{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+nav.sections::-webkit-scrollbar{display:none}
+nav.sections a{color:var(--ink2);text-decoration:none;font-size:13px;padding:6px 10px;border-radius:8px;white-space:nowrap}
+nav.sections a:hover,nav.sections a.on{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--ring)}
 button.theme{background:var(--surface);color:var(--ink2);border:1px solid var(--ring);
-  border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;font-size:13px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:16px 0}
-.tile{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:14px 16px;
-  border-left-width:4px;border-left-style:solid;border-left-color:var(--axis)}
-.tile.crit{border-left-color:var(--critical);background:var(--crit-wash)}
-.tile.warn{border-left-color:var(--warning);background:var(--warn-wash)}
-.tile.good{border-left-color:var(--good);background:var(--good-wash)}
-.tile.info{border-left-color:var(--s1);background:var(--info-wash)}
-.tile .lbl{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:6px}
-.tile .val{font-size:28px;font-weight:600;margin:6px 0 2px}
-.tile .val small{font-size:14px;font-weight:400;color:var(--ink2)}
-.tile .sum{font-size:14px;color:var(--ink2);font-variant-numeric:tabular-nums}
-.legend{display:flex;gap:18px;flex-wrap:wrap;margin:2px 0 10px;font-size:13px;color:var(--ink2)}
+  border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px;white-space:nowrap}
+button.theme:hover{color:var(--ink)}
+
+/* герой */
+.hero{padding:40px 0 10px;display:grid;grid-template-columns:1.25fr 1fr;gap:28px;align-items:end}
+.hero .lead{font-size:17px;color:var(--ink2);max-width:560px;margin:0 0 16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);background:var(--surface);
+  border:1px solid var(--ring);border-radius:99px;padding:4px 11px}
+.chip.demo{border-color:var(--warning);color:var(--ink)}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--good);display:inline-block}
+.herofig{background:var(--surface);border:1px solid var(--ring);border-radius:18px;padding:22px 24px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden}
+.herofig:before{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 100% 0%,color-mix(in srgb,var(--good) 14%,transparent),transparent 60%);pointer-events:none}
+.herofig .lbl{font-size:13px;color:var(--ink2)}
+.herofig .num{font-size:clamp(40px,5vw,56px);font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:4px 0 6px}
+.herofig .num small{font-size:20px;font-weight:500;color:var(--ink2);letter-spacing:0;margin-left:4px}
+.herofig .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--ink2)}
+.herofig .spark{height:56px;margin-top:14px}
+
+/* выводы */
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:22px 0 8px}
+.ins{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.ins .ic{flex:0 0 34px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px}
+.ins.good .ic{background:var(--good-wash);color:var(--good)}
+.ins.info .ic{background:var(--info-wash);color:var(--s1)}
+.ins.warn .ic{background:var(--warn-wash);color:#9a6a00}
+:root[data-theme="dark"] .ins.warn .ic{color:var(--warning)}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .ins.warn .ic{color:var(--warning)}}
+.ins b{display:block;font-size:14.5px;margin-bottom:2px}
+.ins span{font-size:13.5px;color:var(--ink2)}
+
+/* плитки */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 8px}
+@media (min-width:1000px){.tiles{grid-template-columns:repeat(6,1fr)}}
+.tile{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:14px 16px 12px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;min-height:118px}
+.tile .lbl{font-size:13px;color:var(--ink2)}
+.tile .val{font-size:28px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px;line-height:1.1}
+.tile .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:auto}
+.tile .spark{height:34px;margin-top:10px}
+.spark{display:block;width:100%}
+.delta{display:inline-flex;align-items:center;gap:3px;font-weight:600;font-size:12.5px;padding:1px 7px;border-radius:99px}
+.delta.good{color:var(--good);background:var(--good-wash)}
+.delta.bad{color:var(--critical);background:var(--crit-wash)}
+
+/* секции и карточки */
+section{margin-top:34px;scroll-margin-top:70px}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.sechead .muted{max-width:720px}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);min-width:0}
+section,.grid2>*,.grid11>*,.donutwrap>*,.bal>*{min-width:0}
+.wrap{overflow-x:clip}
+.card+.card{margin-top:14px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.grid11{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.callout{background:var(--surface2);border-left:3px solid var(--s1);border-radius:0 10px 10px 0;padding:10px 14px;margin:12px 0 0;font-size:14px;color:var(--ink2)}
+.callout.warn{border-left-color:var(--warning)}
+.callout.good{border-left-color:var(--good)}
+.callout b{color:var(--ink)}
+
+/* графики */
+.chartbox{overflow-x:auto;margin:6px -4px 0;padding:0 4px}
+.chart{display:block;width:100%;min-width:620px;height:auto}
+.chart-sm{min-width:0}
+.ax{font-size:11.5px;fill:var(--muted)}
+.lab{font-size:12px;font-weight:600;fill:var(--ink)}
+.onfill{font-size:12.5px;font-weight:600;fill:#fff}
+.big{font-size:22px;font-weight:700;fill:var(--ink);letter-spacing:-.02em}
+.muted.ax{fill:var(--muted)}
+svg text{font-family:inherit}
+.hit{cursor:default}
+.hit:hover rect:not([fill=transparent]),.hit:hover path,.hit:hover circle{filter:brightness(1.08)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 6px;font-size:13px;color:var(--ink2)}
 .legend span{display:inline-flex;align-items:center;gap:7px}
-.swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
-.chartbox{overflow-x:auto}
-svg{display:block;max-width:100%}
-.tt{position:fixed;z-index:50;pointer-events:none;background:var(--surface);color:var(--ink);
-  border:1px solid var(--ring);border-radius:8px;padding:8px 10px;font-size:13px;
-  box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;max-width:300px}
-.tt b{display:block;margin-bottom:4px}
-.tt .row{display:flex;justify-content:space-between;gap:14px;font-variant-numeric:tabular-nums}
-.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
-.tools input,.tools select{font:inherit;font-size:14px;padding:7px 10px;border-radius:8px;
-  border:1px solid var(--ring);background:var(--plane);color:var(--ink)}
-.tools input{min-width:230px}
-.tblbox{overflow-x:auto;border:1px solid var(--ring);border-radius:10px}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--grid);white-space:nowrap}
-th{position:sticky;top:0;background:var(--surface);color:var(--ink2);font-weight:600;
-  font-size:13px;cursor:pointer;user-select:none}
+.swatch,.dot{width:11px;height:11px;border-radius:3px;display:inline-block;flex:0 0 auto}
+.dot{border-radius:50%}
+.donutwrap{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:center}
+.donut{display:block;width:100%;max-width:240px;height:auto;margin:0 auto}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-h{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.bar-n{color:var(--ink)}
+.bar-v{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.bar-v small{font-weight:400;color:var(--muted)}
+.track{height:7px;background:var(--grid);border-radius:99px;margin-top:5px;overflow:hidden}
+.fill{height:100%;border-radius:99px}
+
+/* баланс */
+.bal{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bal .col h3{margin-bottom:10px}
+.bal .total{display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--axis);padding-top:8px;margin-top:10px;font-size:14px}
+.ratios{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
+.ratio{background:var(--surface2);border-radius:12px;padding:12px 14px}
+.ratio .v{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.ratio .l{font-size:13px;color:var(--ink2)}
+
+/* таблицы */
+details.tbl{margin-top:12px}
+details.tbl>summary{cursor:pointer;list-style:none;font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:8px;padding:8px 0;user-select:none}
+details.tbl>summary::-webkit-details-marker{display:none}
+details.tbl>summary:before{content:"";width:16px;height:16px;border-radius:4px;border:1px solid var(--axis);display:inline-block;
+  background:linear-gradient(var(--axis),var(--axis)) center/8px 1px no-repeat,linear-gradient(var(--axis),var(--axis)) center/1px 8px no-repeat}
+details.tbl[open]>summary:before{background:linear-gradient(var(--axis),var(--axis)) center/8px 1px no-repeat}
+details.tbl .arrow{margin-left:auto;color:var(--muted)}
+details.tbl[open] .arrow:after{content:"свернуть"}
+details.tbl:not([open]) .arrow:after{content:"показать"}
+.tblbox{overflow-x:auto;border:1px solid var(--ring);border-radius:10px;margin-top:6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--grid);white-space:nowrap}
+th{background:var(--surface2);color:var(--ink2);font-weight:600;font-size:12.5px}
 th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
-/* ❗Переносимые ячейки в широкой таблице раздувают строку втрое против высоты
-   своего текста (143px вместо 38 на реальных данных). Для длинных значений лучше
-   не переносить, а сокращать текст в данных - таблица и так скроллится вбок. */
-td.wrap{white-space:normal;max-width:280px;line-height:1.35}
-tbody tr:hover{background:var(--plane)}
-tfoot td{font-weight:600;border-top:1px solid var(--axis);border-bottom:none;background:var(--surface)}
-.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;border:1px solid var(--ring);color:var(--ink2)}
-.pill.crit{border-color:var(--critical);color:var(--critical)}
-.pill.good{border-color:var(--good);color:var(--good)}
-.pill.warn{border-color:var(--warning);color:var(--ink2)}
-details{margin:16px 0}
-details>summary{cursor:pointer;list-style:none;background:var(--surface);border:1px solid var(--ring);
-  border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-details>summary::-webkit-details-marker{display:none}
-details[open]>summary{border-radius:12px 12px 0 0;border-bottom:none}
-.body{background:var(--surface);border:1px solid var(--ring);border-top:none;
-  border-radius:0 0 12px 12px;padding:4px 18px 18px}
-summary .mark{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
-summary .arrow{color:var(--muted);margin-left:auto;font-size:13px}
-details[open] summary .arrow::after{content:"свернуть"}
-details:not([open]) summary .arrow::after{content:"развернуть"}
-.note{background:var(--plane);border-left:3px solid var(--axis);border-radius:0 8px 8px 0;
-  padding:10px 14px;margin:10px 0;font-size:14px;color:var(--ink2)}
-.note.crit{border-left-color:var(--critical)}
-.note.warn{border-left-color:var(--warning)}
-.note.good{border-left-color:var(--good)}
-ul.steps{margin:8px 0 4px;padding-left:20px}
-ul.steps li{margin-bottom:6px}
-.empty{padding:16px;color:var(--muted)}
-/* тепловая карта */
-table.heat{border-collapse:separate;border-spacing:2px;width:auto;font-size:13px}
-table.heat th{position:static;background:none;cursor:default;border:none;padding:4px 8px;white-space:nowrap}
-table.heat th.col{font-size:12px;text-align:center}
-table.heat td{border:none;padding:0}
-table.heat .cell{width:100%;min-width:76px;height:40px;border-radius:6px;display:flex;
-  align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-size:12px;cursor:default}
-table.heat .cell.link{cursor:pointer}
-table.heat .cell.empty{background:transparent;color:var(--muted)}
-table.heat .cell.self{background:var(--grid)}
-table.heat .cell.ok{background:var(--good-wash);color:var(--ink2);border:1px solid var(--good)}
+td.neg{color:var(--critical)}
+tbody tr:last-child td{border-bottom:none}
+tfoot td{font-weight:700;border-top:1px solid var(--axis);border-bottom:none;background:var(--surface2)}
+
+/* как устроено */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.step{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:16px}
+.step .n{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--plane);display:grid;place-items:center;font-weight:700;font-size:13px;margin-bottom:10px}
+.step b{display:block;margin-bottom:4px}
+.step span{font-size:13.5px;color:var(--ink2)}
+.cta{margin-top:26px;background:linear-gradient(135deg,color-mix(in srgb,var(--s1) 12%,var(--surface)),color-mix(in srgb,var(--s3) 12%,var(--surface)));
+  border:1px solid var(--ring);border-radius:18px;padding:24px 26px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.cta b{font-size:18px;display:block;margin-bottom:4px}
+.cta span{color:var(--ink2)}
+.btn{display:inline-block;background:var(--ink);color:var(--plane);text-decoration:none;padding:11px 18px;border-radius:10px;font-weight:600;white-space:nowrap}
+.btn.o{background:transparent;color:var(--ink);border:1px solid var(--axis)}
+footer{margin-top:40px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--ring);padding-top:16px}
+
+/* подсказка (улучшение, через JS) */
+.tt{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--plane);
+  border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.4;box-shadow:0 6px 22px rgba(0,0,0,.22);
+  opacity:0;transition:opacity .08s;max-width:300px}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:18px;padding-top:26px}
+  .grid2,.grid11,.bal{grid-template-columns:1fr}
+  .donutwrap{grid-template-columns:1fr}
+  .brand span.t{display:none}
+}
+@media (max-width:600px){
+  .wrap{padding:0 16px 60px}
+  .tiles{grid-template-columns:1fr 1fr;gap:10px}
+  .tile{padding:12px 13px 10px;min-height:0}
+  .tile .val{font-size:23px}
+  .card{padding:14px 14px;border-radius:14px}
+  .chart{min-width:560px}
+  .chart-sm{min-width:0}
+  nav.sections{display:none}
+}
 @media print{
   body{background:#fff}
-  details{break-inside:avoid} details:not([open])>summary{border-radius:12px}
-  .theme{display:none}
+  .topbar,.cta,.tt{display:none}
+  .card,.tile,.ins{box-shadow:none;break-inside:avoid}
+  details.tbl{display:none}
 }
-
-.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px}
-.spark{display:block;margin-top:8px;width:100%;height:32px}
-.tile .val{margin-bottom:2px}
-.stack{display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid var(--ring);margin:10px 0}
-.stack .seg{display:block;height:100%}
-.stlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:4px}
-.stlegend span{display:inline-flex;align-items:center;gap:7px}
-.chart{min-width:640px}
-h2{margin-top:2px}
-.demo{background:var(--plane);border-left:3px solid var(--warning);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0;font-size:13px;color:var(--ink2)}
-.cols{display:flex;gap:18px;flex-wrap:wrap}
-.cols>div{flex:1 1 300px;min-width:280px}
 </style>
 </head>
 <body>
+<div class="topbar"><div class="in">
+  <a class="brand" href="index.html" style="text-decoration:none;color:inherit"><span class="logo"></span><span class="t">Управленческая отчётность</span></a>
+  <nav class="sections"><a href="#itogi">Итоги</a><a href="#pribyl">Прибыль</a><a href="#dengi">Деньги</a><a href="#rashody">Расходы</a><a href="#balans">Баланс</a><a href="#prodazhi">Продажи</a><a href="#kak">Как устроено</a></nav>
+  <button id="theme" class="theme" type="button">сменить тему</button>
+</div></div>
 <div class="wrap">
+
 <div class="hero">
   <div>
-    <h1>Управленческая отчётность — пример дашборда</h1>
-    <p class="sub">Собран из книги проводок в Google Таблицах: двойная запись → P&amp;L, ДДС, баланс.
-       Период: сентябрь 2025 — август 2026.</p>
-    <p class="muted">Один HTML-файл. Открывается на телефоне и на компьютере, без интернета,
-       без установки программ, без входа в чужой сервис.</p>
+    <div class="chips">
+      <span class="chip"><span class="dot"></span>обновлено 01.09.2026, 06:00</span>
+      <span class="chip">сентябрь 2025 - август 2026</span>
+      <span class="chip demo">демо: компания и цифры вымышленные</span>
+    </div>
+    <h1>Весь бизнес на одном экране: выручка, прибыль, деньги, долги и продажи</h1>
+    <p class="lead">Собирается само из книги проводок, 1С, банка и CRM. Открывается с телефона
+      без входа и программ. Ниже - как это выглядит для собственника.</p>
   </div>
-  <button id="theme" class="theme">сменить тему</button>
+  <div class="herofig">
+    <div class="lbl">Чистая прибыль за 12 месяцев</div>
+    <div class="num">7,6 млн<small>₽</small></div>
+    <div class="row"><span class="delta good">▲ 64,5%</span> второе полугодие к первому
+      <span>· рентабельность 20,4%</span></div>
+    <svg class="spark" viewBox="0 0 360 56" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,41.0 L32.7,35.8 L65.5,30.6 L98.2,23.6 L130.9,52.0 L163.6,34.3 L196.4,25.4 L229.1,19.6 L261.8,31.8 L294.5,15.3 L327.3,8.0 L360.0,4.0 L360,56 L0,56 Z" fill="var(--good)" opacity=".12"/><path d="M0.0,41.0 L32.7,35.8 L65.5,30.6 L98.2,23.6 L130.9,52.0 L163.6,34.3 L196.4,25.4 L229.1,19.6 L261.8,31.8 L294.5,15.3 L327.3,8.0 L360.0,4.0" fill="none" stroke="var(--good)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="360.0" cy="4.0" r="4" fill="var(--good)" stroke="var(--surface)" stroke-width="2"/></svg>
+  </div>
 </div>
+<section id="itogi" style="margin-top:10px">
 
-<div class="demo">Цифры и компания — демонстрационные, специально придуманные для примера.
-  Структура и вид — рабочие: так же собирается дашборд по реальным данным.</div>
-
-<div class="tiles"><div class="tile good"><div class="lbl">Выручка за август</div><div class="val">4,1 млн</div><div class=sum>к июлю +4,6%</div><svg class="spark" viewBox="0 0 120 32" width="120" height="32" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,23.2 L10.9,20.4 L21.8,17.4 L32.7,11.1 L43.6,28.0 L54.5,19.5 L65.5,14.7 L76.4,12.2 L87.3,17.6 L98.2,9.6 L109.1,6.0 L120.0,4.0 L120.0,32 L0,32 Z" fill="var(--good)" opacity="0.10"/><path d="M0.0,23.2 L10.9,20.4 L21.8,17.4 L32.7,11.1 L43.6,28.0 L54.5,19.5 L65.5,14.7 L76.4,12.2 L87.3,17.6 L98.2,9.6 L109.1,6.0 L120.0,4.0" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="120.0" cy="4.0" r="2.6" fill="var(--good)"/></svg></div>
-<div class="tile good"><div class="lbl">Чистая прибыль за август</div><div class="val">1,0 млн</div><div class=sum>рентабельность 24,4%</div><svg class="spark" viewBox="0 0 120 32" width="120" height="32" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,22.5 L10.9,19.9 L21.8,17.3 L32.7,13.8 L43.6,28.0 L54.5,19.1 L65.5,14.7 L76.4,11.8 L87.3,17.9 L98.2,9.7 L109.1,6.0 L120.0,4.0 L120.0,32 L0,32 Z" fill="var(--s1)" opacity="0.10"/><path d="M0.0,22.5 L10.9,19.9 L21.8,17.3 L32.7,13.8 L43.6,28.0 L54.5,19.1 L65.5,14.7 L76.4,11.8 L87.3,17.9 L98.2,9.7 L109.1,6.0 L120.0,4.0" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="120.0" cy="4.0" r="2.6" fill="var(--s1)"/></svg></div>
-<div class="tile info"><div class="lbl">Деньги на счетах</div><div class="val">5,1 млн</div><div class=sum>за месяц +640 тыс</div><svg class="spark" viewBox="0 0 120 32" width="120" height="32" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,28.0 L10.9,26.5 L21.8,24.3 L32.7,22.2 L43.6,24.0 L54.5,22.4 L65.5,19.9 L76.4,17.0 L87.3,15.6 L98.2,12.2 L109.1,8.1 L120.0,4.0 L120.0,32 L0,32 Z" fill="var(--s2)" opacity="0.10"/><path d="M0.0,28.0 L10.9,26.5 L21.8,24.3 L32.7,22.2 L43.6,24.0 L54.5,22.4 L65.5,19.9 L76.4,17.0 L87.3,15.6 L98.2,12.2 L109.1,8.1 L120.0,4.0" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="120.0" cy="4.0" r="2.6" fill="var(--s2)"/></svg></div>
-<div class="tile warn"><div class="lbl">Нам должны</div><div class="val">3,6 млн</div><div class=sum>дебиторская задолженность</div></div>
-<div class="tile warn"><div class="lbl">Мы должны</div><div class="val">3,5 млн</div><div class=sum>поставщики и налоги</div></div>
-<div class="tile info"><div class="lbl">Выручка за 12 месяцев</div><div class="val">37,2 млн</div><div class=sum>прибыль 7,6 млн, рентабельность 20,4%</div></div></div>
-
-<div class="card">
-  <h2>Прибыли и убытки по месяцам</h2>
-  <p class="muted">Видно и сезонность (январский провал), и то, что прибыль растёт быстрее выручки.</p>
-  <div class="legend"><span><i class="swatch" style="background:var(--s1)"></i>выручка</span><span><i class="swatch" style="background:var(--s2)"></i>себестоимость</span><span><i class="swatch" style="background:var(--good)"></i>чистая прибыль</span></div><div class="chartbox"><svg class="chart" viewBox="0 0 924 260" width="924" height="260" role="img" preserveAspectRatio="xMinYMid meet"><line x1="58" x2="910" y1="208.0" y2="208.0" stroke="var(--axis)" stroke-width="1"/><text x="50" y="212.0" text-anchor="end" fill="var(--muted)" font-size="11">0</text><line x1="58" x2="910" y1="144.0" y2="144.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="148.0" text-anchor="end" fill="var(--muted)" font-size="11">2,0 млн</text><line x1="58" x2="910" y1="80.0" y2="80.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="84.0" text-anchor="end" fill="var(--muted)" font-size="11">4,0 млн</text><line x1="58" x2="910" y1="16.0" y2="16.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="20.0" text-anchor="end" fill="var(--muted)" font-size="11">6,0 млн</text><rect x="68.0" y="131.8" width="13" height="76.2" rx="3" fill="var(--s1)"><title>сен 25: выручка 2 380 000 ₽, себестоимость 1 260 000 ₽, прибыль 400 000 ₽</title></rect><rect x="84.0" y="167.7" width="13" height="40.3" rx="3" fill="var(--s2)"><title>сен 25: выручка 2 380 000 ₽, себестоимость 1 260 000 ₽, прибыль 400 000 ₽</title></rect><rect x="100.0" y="195.2" width="13" height="12.8" rx="3" fill="var(--good)"><title>сен 25: выручка 2 380 000 ₽, себестоимость 1 260 000 ₽, прибыль 400 000 ₽</title></rect><text x="90.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 90.5 224)">сен 25</text><rect x="139.0" y="123.5" width="13" height="84.5" rx="3" fill="var(--s1)"><title>окт 25: выручка 2 640 000 ₽, себестоимость 1 410 000 ₽, прибыль 485 000 ₽</title></rect><rect x="155.0" y="162.9" width="13" height="45.1" rx="3" fill="var(--s2)"><title>окт 25: выручка 2 640 000 ₽, себестоимость 1 410 000 ₽, прибыль 485 000 ₽</title></rect><rect x="171.0" y="192.5" width="13" height="15.5" rx="3" fill="var(--good)"><title>окт 25: выручка 2 640 000 ₽, себестоимость 1 410 000 ₽, прибыль 485 000 ₽</title></rect><text x="161.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 161.5 224)">окт 25</text><rect x="210.0" y="114.9" width="13" height="93.1" rx="3" fill="var(--s1)"><title>ноя 25: выручка 2 910 000 ₽, себестоимость 1 560 000 ₽, прибыль 570 000 ₽</title></rect><rect x="226.0" y="158.1" width="13" height="49.9" rx="3" fill="var(--s2)"><title>ноя 25: выручка 2 910 000 ₽, себестоимость 1 560 000 ₽, прибыль 570 000 ₽</title></rect><rect x="242.0" y="189.8" width="13" height="18.2" rx="3" fill="var(--good)"><title>ноя 25: выручка 2 910 000 ₽, себестоимость 1 560 000 ₽, прибыль 570 000 ₽</title></rect><text x="232.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 232.5 224)">ноя 25</text><rect x="281.0" y="96.6" width="13" height="111.4" rx="3" fill="var(--s1)"><title>дек 25: выручка 3 480 000 ₽, себестоимость 1 890 000 ₽, прибыль 685 000 ₽</title></rect><rect x="297.0" y="147.5" width="13" height="60.5" rx="3" fill="var(--s2)"><title>дек 25: выручка 3 480 000 ₽, себестоимость 1 890 000 ₽, прибыль 685 000 ₽</title></rect><rect x="313.0" y="186.1" width="13" height="21.9" rx="3" fill="var(--good)"><title>дек 25: выручка 3 480 000 ₽, себестоимость 1 890 000 ₽, прибыль 685 000 ₽</title></rect><text x="303.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 303.5 224)">дек 25</text><rect x="352.0" y="145.6" width="13" height="62.4" rx="3" fill="var(--s1)"><title>янв 26: выручка 1 950 000 ₽, себестоимость 1 040 000 ₽, прибыль 220 000 ₽</title></rect><rect x="368.0" y="174.7" width="13" height="33.3" rx="3" fill="var(--s2)"><title>янв 26: выручка 1 950 000 ₽, себестоимость 1 040 000 ₽, прибыль 220 000 ₽</title></rect><rect x="384.0" y="201.0" width="13" height="7.0" rx="3" fill="var(--good)"><title>янв 26: выручка 1 950 000 ₽, себестоимость 1 040 000 ₽, прибыль 220 000 ₽</title></rect><text x="374.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 374.5 224)">янв 26</text><rect x="423.0" y="121.0" width="13" height="87.0" rx="3" fill="var(--s1)"><title>фев 26: выручка 2 720 000 ₽, себестоимость 1 450 000 ₽, прибыль 510 000 ₽</title></rect><rect x="439.0" y="161.6" width="13" height="46.4" rx="3" fill="var(--s2)"><title>фев 26: выручка 2 720 000 ₽, себестоимость 1 450 000 ₽, прибыль 510 000 ₽</title></rect><rect x="455.0" y="191.7" width="13" height="16.3" rx="3" fill="var(--good)"><title>фев 26: выручка 2 720 000 ₽, себестоимость 1 450 000 ₽, прибыль 510 000 ₽</title></rect><text x="445.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 445.5 224)">фев 26</text><rect x="494.0" y="107.2" width="13" height="100.8" rx="3" fill="var(--s1)"><title>мар 26: выручка 3 150 000 ₽, себестоимость 1 680 000 ₽, прибыль 655 000 ₽</title></rect><rect x="510.0" y="154.2" width="13" height="53.8" rx="3" fill="var(--s2)"><title>мар 26: выручка 3 150 000 ₽, себестоимость 1 680 000 ₽, прибыль 655 000 ₽</title></rect><rect x="526.0" y="187.0" width="13" height="21.0" rx="3" fill="var(--good)"><title>мар 26: выручка 3 150 000 ₽, себестоимость 1 680 000 ₽, прибыль 655 000 ₽</title></rect><text x="516.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 516.5 224)">мар 26</text><rect x="565.0" y="99.8" width="13" height="108.2" rx="3" fill="var(--s1)"><title>апр 26: выручка 3 380 000 ₽, себестоимость 1 790 000 ₽, прибыль 750 000 ₽</title></rect><rect x="581.0" y="150.7" width="13" height="57.3" rx="3" fill="var(--s2)"><title>апр 26: выручка 3 380 000 ₽, себестоимость 1 790 000 ₽, прибыль 750 000 ₽</title></rect><rect x="597.0" y="184.0" width="13" height="24.0" rx="3" fill="var(--good)"><title>апр 26: выручка 3 380 000 ₽, себестоимость 1 790 000 ₽, прибыль 750 000 ₽</title></rect><text x="587.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 587.5 224)">апр 26</text><rect x="636.0" y="115.5" width="13" height="92.5" rx="3" fill="var(--s1)"><title>май 26: выручка 2 890 000 ₽, себестоимость 1 540 000 ₽, прибыль 550 000 ₽</title></rect><rect x="652.0" y="158.7" width="13" height="49.3" rx="3" fill="var(--s2)"><title>май 26: выручка 2 890 000 ₽, себестоимость 1 540 000 ₽, прибыль 550 000 ₽</title></rect><rect x="668.0" y="190.4" width="13" height="17.6" rx="3" fill="var(--good)"><title>май 26: выручка 2 890 000 ₽, себестоимость 1 540 000 ₽, прибыль 550 000 ₽</title></rect><text x="658.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 658.5 224)">май 26</text><rect x="707.0" y="92.5" width="13" height="115.5" rx="3" fill="var(--s1)"><title>июн 26: выручка 3 610 000 ₽, себестоимость 1 920 000 ₽, прибыль 820 000 ₽</title></rect><rect x="723.0" y="146.6" width="13" height="61.4" rx="3" fill="var(--s2)"><title>июн 26: выручка 3 610 000 ₽, себестоимость 1 920 000 ₽, прибыль 820 000 ₽</title></rect><rect x="739.0" y="181.8" width="13" height="26.2" rx="3" fill="var(--good)"><title>июн 26: выручка 3 610 000 ₽, себестоимость 1 920 000 ₽, прибыль 820 000 ₽</title></rect><text x="729.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 729.5 224)">июн 26</text><rect x="778.0" y="81.9" width="13" height="126.1" rx="3" fill="var(--s1)"><title>июл 26: выручка 3 940 000 ₽, себестоимость 2 090 000 ₽, прибыль 940 000 ₽</title></rect><rect x="794.0" y="141.1" width="13" height="66.9" rx="3" fill="var(--s2)"><title>июл 26: выручка 3 940 000 ₽, себестоимость 2 090 000 ₽, прибыль 940 000 ₽</title></rect><rect x="810.0" y="177.9" width="13" height="30.1" rx="3" fill="var(--good)"><title>июл 26: выручка 3 940 000 ₽, себестоимость 2 090 000 ₽, прибыль 940 000 ₽</title></rect><text x="800.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 800.5 224)">июл 26</text><rect x="849.0" y="76.2" width="13" height="131.8" rx="3" fill="var(--s1)"><title>авг 26: выручка 4 120 000 ₽, себестоимость 2 180 000 ₽, прибыль 1 005 000 ₽</title></rect><rect x="865.0" y="138.2" width="13" height="69.8" rx="3" fill="var(--s2)"><title>авг 26: выручка 4 120 000 ₽, себестоимость 2 180 000 ₽, прибыль 1 005 000 ₽</title></rect><rect x="881.0" y="175.8" width="13" height="32.2" rx="3" fill="var(--good)"><title>авг 26: выручка 4 120 000 ₽, себестоимость 2 180 000 ₽, прибыль 1 005 000 ₽</title></rect><text x="871.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 871.5 224)">авг 26</text></svg></div><div class="tblbox"><table><thead><tr><th class="" data-k="m">Месяц</th><th class="num" data-k="выручка">Выручка, ₽</th><th class="num" data-k="себестоимость">Себестоимость, ₽</th><th class="num" data-k="расходы">Расходы, ₽</th><th class="num" data-k="прибыль">Прибыль, ₽</th></tr></thead><tbody><tr><td class="">сен 25</td><td class="num">2 380 000</td><td class="num">1 260 000</td><td class="num">720 000</td><td class="num">400 000</td></tr><tr><td class="">окт 25</td><td class="num">2 640 000</td><td class="num">1 410 000</td><td class="num">745 000</td><td class="num">485 000</td></tr><tr><td class="">ноя 25</td><td class="num">2 910 000</td><td class="num">1 560 000</td><td class="num">780 000</td><td class="num">570 000</td></tr><tr><td class="">дек 25</td><td class="num">3 480 000</td><td class="num">1 890 000</td><td class="num">905 000</td><td class="num">685 000</td></tr><tr><td class="">янв 26</td><td class="num">1 950 000</td><td class="num">1 040 000</td><td class="num">690 000</td><td class="num">220 000</td></tr><tr><td class="">фев 26</td><td class="num">2 720 000</td><td class="num">1 450 000</td><td class="num">760 000</td><td class="num">510 000</td></tr><tr><td class="">мар 26</td><td class="num">3 150 000</td><td class="num">1 680 000</td><td class="num">815 000</td><td class="num">655 000</td></tr><tr><td class="">апр 26</td><td class="num">3 380 000</td><td class="num">1 790 000</td><td class="num">840 000</td><td class="num">750 000</td></tr><tr><td class="">май 26</td><td class="num">2 890 000</td><td class="num">1 540 000</td><td class="num">800 000</td><td class="num">550 000</td></tr><tr><td class="">июн 26</td><td class="num">3 610 000</td><td class="num">1 920 000</td><td class="num">870 000</td><td class="num">820 000</td></tr><tr><td class="">июл 26</td><td class="num">3 940 000</td><td class="num">2 090 000</td><td class="num">910 000</td><td class="num">940 000</td></tr><tr><td class="">авг 26</td><td class="num">4 120 000</td><td class="num">2 180 000</td><td class="num">935 000</td><td class="num">1 005 000</td></tr></tbody><tfoot><tr><td>12 стр.</td><td class="num">37 170 000</td><td></td><td></td><td></td></tr></tfoot></table></div>
+<div class="insights">
+  <div class="ins good"><div class="ic">↗</div><div><b>Выручка выросла на 73% за год</b>
+    <span>С 2,4 млн в сентябре до 4,1 млн в августе. Единственный провал - январь.</span></div></div>
+  <div class="ins good"><div class="ic">%</div><div><b>Рентабельность: 16,8% → 24,4%</b>
+    <span>Прибыль растёт быстрее выручки: расходы почти не выросли, пока продажи прибавили.</span></div></div>
+  <div class="ins info"><div class="ic">₽</div><div><b>Денег хватит на 1,6 месяца платежей</b>
+    <span>5,1 млн на счетах при среднем оттоке 3,1 млн в месяц. В январе остаток падал.</span></div></div>
+  <div class="ins warn"><div class="ic">!</div><div><b>Дебиторка 3,6 млн - почти месяц выручки</b>
+    <span>Нам должны больше, чем мы должны поставщикам и налоговой (3,5 млн), но 0,9 месяца продаж заморожено.</span></div></div>
 </div>
+<div class="tiles"><div class="tile "><div class="lbl">Выручка за август</div><div class="val">4,1 млн</div><div class="row"><span class="delta good">▲ 4,6%</span><span class="sum">к июлю</span></div><svg class="spark" viewBox="0 0 140 36" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,26.5 L12.7,23.1 L25.5,19.6 L38.2,12.3 L50.9,32.0 L63.6,22.1 L76.4,16.5 L89.1,13.5 L101.8,19.9 L114.5,10.6 L127.3,6.3 L140.0,4.0 L140,36 L0,36 Z" fill="var(--s1)" opacity=".12"/><path d="M0.0,26.5 L12.7,23.1 L25.5,19.6 L38.2,12.3 L50.9,32.0 L63.6,22.1 L76.4,16.5 L89.1,13.5 L101.8,19.9 L114.5,10.6 L127.3,6.3 L140.0,4.0" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="140.0" cy="4.0" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></svg></div>
+<div class="tile "><div class="lbl">Чистая прибыль за август</div><div class="val">1,0 млн</div><div class="row"><span class="delta good">▲ 6,9%</span><span class="sum">к июлю</span></div><svg class="spark" viewBox="0 0 140 36" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,25.6 L12.7,22.5 L25.5,19.5 L38.2,15.4 L50.9,32.0 L63.6,21.7 L76.4,16.5 L89.1,13.1 L101.8,20.2 L114.5,10.6 L127.3,6.3 L140.0,4.0 L140,36 L0,36 Z" fill="var(--good)" opacity=".12"/><path d="M0.0,25.6 L12.7,22.5 L25.5,19.5 L38.2,15.4 L50.9,32.0 L63.6,21.7 L76.4,16.5 L89.1,13.1 L101.8,20.2 L114.5,10.6 L127.3,6.3 L140.0,4.0" fill="none" stroke="var(--good)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="140.0" cy="4.0" r="4" fill="var(--good)" stroke="var(--surface)" stroke-width="2"/></svg></div>
+<div class="tile "><div class="lbl">Рентабельность</div><div class="val">24,4%</div><div class="row"><span class="delta good">▲ 0,5 п,п,</span><span class="sum">к июлю</span></div><svg class="spark" viewBox="0 0 140 36" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,20.2 L12.7,16.9 L25.5,14.3 L38.2,14.1 L50.9,32.0 L63.6,16.1 L76.4,11.7 L89.1,8.7 L101.8,15.5 L114.5,7.6 L127.3,5.1 L140.0,4.0 L140,36 L0,36 Z" fill="var(--s3)" opacity=".12"/><path d="M0.0,20.2 L12.7,16.9 L25.5,14.3 L38.2,14.1 L50.9,32.0 L63.6,16.1 L76.4,11.7 L89.1,8.7 L101.8,15.5 L114.5,7.6 L127.3,5.1 L140.0,4.0" fill="none" stroke="var(--s3)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="140.0" cy="4.0" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></svg></div>
+<div class="tile "><div class="lbl">Деньги на счетах</div><div class="val">5,1 млн</div><div class="row"><span class="delta good">▲ 640 тыс</span><span class="sum">за август</span></div><svg class="spark" viewBox="0 0 140 36" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,32.0 L12.7,30.3 L25.5,27.7 L38.2,25.2 L50.9,27.3 L63.6,25.4 L76.4,22.6 L89.1,19.2 L101.8,17.5 L114.5,13.6 L127.3,8.8 L140.0,4.0 L140,36 L0,36 Z" fill="var(--s2)" opacity=".12"/><path d="M0.0,32.0 L12.7,30.3 L25.5,27.7 L38.2,25.2 L50.9,27.3 L63.6,25.4 L76.4,22.6 L89.1,19.2 L101.8,17.5 L114.5,13.6 L127.3,8.8 L140.0,4.0" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="140.0" cy="4.0" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"/></svg></div>
+<div class="tile "><div class="lbl">Нам должны</div><div class="val">3,6 млн</div><div class="row"><span class="sum">0,9 мес. выручки</span></div></div>
+<div class="tile "><div class="lbl">Мы должны</div><div class="val">3,5 млн</div><div class="row"><span class="sum">поставщики и налоги</span></div></div></div>
+</section>
 
-<div class="card">
-  <h2>Движение денег по месяцам</h2>
-  <p class="muted">Прибыль и деньги — разные вещи: в январе прибыль 220 000 ₽,
-     а денег на счетах стало меньше на 280 000 ₽.</p>
-  <div class="legend"><span><i class="swatch" style="background:var(--s1)"></i>поступления</span><span><i class="swatch" style="background:var(--s2)"></i>платежи</span></div><div class="chartbox"><svg class="chart" viewBox="0 0 732 260" width="732" height="260" role="img" preserveAspectRatio="xMinYMid meet"><line x1="58" x2="718" y1="208.0" y2="208.0" stroke="var(--axis)" stroke-width="1"/><text x="50" y="212.0" text-anchor="end" fill="var(--muted)" font-size="11">0</text><line x1="58" x2="718" y1="160.0" y2="160.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="164.0" text-anchor="end" fill="var(--muted)" font-size="11">1,0 млн</text><line x1="58" x2="718" y1="112.0" y2="112.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="116.0" text-anchor="end" fill="var(--muted)" font-size="11">2,0 млн</text><line x1="58" x2="718" y1="64.0" y2="64.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="68.0" text-anchor="end" fill="var(--muted)" font-size="11">3,0 млн</text><line x1="58" x2="718" y1="16.0" y2="16.0" stroke="var(--grid)" stroke-width="1"/><text x="50" y="20.0" text-anchor="end" fill="var(--muted)" font-size="11">4,0 млн</text><rect x="68.0" y="101.9" width="13" height="106.1" rx="3" fill="var(--s1)"><title>сен 25: поступило 2 210 000 ₽, ушло 2 050 000 ₽, остаток 1 410 000 ₽</title></rect><rect x="84.0" y="109.6" width="13" height="98.4" rx="3" fill="var(--s2)"><title>сен 25: поступило 2 210 000 ₽, ушло 2 050 000 ₽, остаток 1 410 000 ₽</title></rect><text x="82.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 82.5 224)">сен 25</text><rect x="123.0" y="88.5" width="13" height="119.5" rx="3" fill="var(--s1)"><title>окт 25: поступило 2 490 000 ₽, ушло 2 260 000 ₽, остаток 1 640 000 ₽</title></rect><rect x="139.0" y="99.5" width="13" height="108.5" rx="3" fill="var(--s2)"><title>окт 25: поступило 2 490 000 ₽, ушло 2 260 000 ₽, остаток 1 640 000 ₽</title></rect><text x="137.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 137.5 224)">окт 25</text><rect x="178.0" y="75.5" width="13" height="132.5" rx="3" fill="var(--s1)"><title>ноя 25: поступило 2 760 000 ₽, ушло 2 420 000 ₽, остаток 1 980 000 ₽</title></rect><rect x="194.0" y="91.8" width="13" height="116.2" rx="3" fill="var(--s2)"><title>ноя 25: поступило 2 760 000 ₽, ушло 2 420 000 ₽, остаток 1 980 000 ₽</title></rect><text x="192.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 192.5 224)">ноя 25</text><rect x="233.0" y="47.7" width="13" height="160.3" rx="3" fill="var(--s1)"><title>дек 25: поступило 3 340 000 ₽, ушло 3 010 000 ₽, остаток 2 310 000 ₽</title></rect><rect x="249.0" y="63.5" width="13" height="144.5" rx="3" fill="var(--s2)"><title>дек 25: поступило 3 340 000 ₽, ушло 3 010 000 ₽, остаток 2 310 000 ₽</title></rect><text x="247.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 247.5 224)">дек 25</text><rect x="288.0" y="103.4" width="13" height="104.6" rx="3" fill="var(--s1)"><title>янв 26: поступило 2 180 000 ₽, ушло 2 460 000 ₽, остаток 2 030 000 ₽</title></rect><rect x="304.0" y="89.9" width="13" height="118.1" rx="3" fill="var(--s2)"><title>янв 26: поступило 2 180 000 ₽, ушло 2 460 000 ₽, остаток 2 030 000 ₽</title></rect><text x="302.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 302.5 224)">янв 26</text><rect x="343.0" y="85.1" width="13" height="122.9" rx="3" fill="var(--s1)"><title>фев 26: поступило 2 560 000 ₽, ушло 2 310 000 ₽, остаток 2 280 000 ₽</title></rect><rect x="359.0" y="97.1" width="13" height="110.9" rx="3" fill="var(--s2)"><title>фев 26: поступило 2 560 000 ₽, ушло 2 310 000 ₽, остаток 2 280 000 ₽</title></rect><text x="357.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 357.5 224)">фев 26</text><rect x="398.0" y="63.0" width="13" height="145.0" rx="3" fill="var(--s1)"><title>мар 26: поступило 3 020 000 ₽, ушло 2 640 000 ₽, остаток 2 660 000 ₽</title></rect><rect x="414.0" y="81.3" width="13" height="126.7" rx="3" fill="var(--s2)"><title>мар 26: поступило 3 020 000 ₽, ушло 2 640 000 ₽, остаток 2 660 000 ₽</title></rect><text x="412.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 412.5 224)">мар 26</text><rect x="453.0" y="52.5" width="13" height="155.5" rx="3" fill="var(--s1)"><title>апр 26: поступило 3 240 000 ₽, ушло 2 790 000 ₽, остаток 3 110 000 ₽</title></rect><rect x="469.0" y="74.1" width="13" height="133.9" rx="3" fill="var(--s2)"><title>апр 26: поступило 3 240 000 ₽, ушло 2 790 000 ₽, остаток 3 110 000 ₽</title></rect><text x="467.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 467.5 224)">апр 26</text><rect x="508.0" y="72.2" width="13" height="135.8" rx="3" fill="var(--s1)"><title>май 26: поступило 2 830 000 ₽, ушло 2 610 000 ₽, остаток 3 330 000 ₽</title></rect><rect x="524.0" y="82.7" width="13" height="125.3" rx="3" fill="var(--s2)"><title>май 26: поступило 2 830 000 ₽, ушло 2 610 000 ₽, остаток 3 330 000 ₽</title></rect><text x="522.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 522.5 224)">май 26</text><rect x="563.0" y="43.8" width="13" height="164.2" rx="3" fill="var(--s1)"><title>июн 26: поступило 3 420 000 ₽, ушло 2 900 000 ₽, остаток 3 850 000 ₽</title></rect><rect x="579.0" y="68.8" width="13" height="139.2" rx="3" fill="var(--s2)"><title>июн 26: поступило 3 420 000 ₽, ушло 2 900 000 ₽, остаток 3 850 000 ₽</title></rect><text x="577.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 577.5 224)">июн 26</text><rect x="618.0" y="26.6" width="13" height="181.4" rx="3" fill="var(--s1)"><title>июл 26: поступило 3 780 000 ₽, ушло 3 150 000 ₽, остаток 4 480 000 ₽</title></rect><rect x="634.0" y="56.8" width="13" height="151.2" rx="3" fill="var(--s2)"><title>июл 26: поступило 3 780 000 ₽, ушло 3 150 000 ₽, остаток 4 480 000 ₽</title></rect><text x="632.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 632.5 224)">июл 26</text><rect x="673.0" y="17.9" width="13" height="190.1" rx="3" fill="var(--s1)"><title>авг 26: поступило 3 960 000 ₽, ушло 3 320 000 ₽, остаток 5 120 000 ₽</title></rect><rect x="689.0" y="48.6" width="13" height="159.4" rx="3" fill="var(--s2)"><title>авг 26: поступило 3 960 000 ₽, ушло 3 320 000 ₽, остаток 5 120 000 ₽</title></rect><text x="687.5" y="224" text-anchor="end" fill="var(--muted)" font-size="11" transform="rotate(-45 687.5 224)">авг 26</text></svg></div><div class="tblbox"><table><thead><tr><th class="" data-k="m">Месяц</th><th class="num" data-k="приток">Поступило, ₽</th><th class="num" data-k="отток">Ушло, ₽</th><th class="num" data-k="сальдо">Сальдо, ₽</th><th class="num" data-k="остаток">Остаток на конец, ₽</th></tr></thead><tbody><tr><td class="">сен 25</td><td class="num">2 210 000</td><td class="num">2 050 000</td><td class="num">160 000</td><td class="num">1 410 000</td></tr><tr><td class="">окт 25</td><td class="num">2 490 000</td><td class="num">2 260 000</td><td class="num">230 000</td><td class="num">1 640 000</td></tr><tr><td class="">ноя 25</td><td class="num">2 760 000</td><td class="num">2 420 000</td><td class="num">340 000</td><td class="num">1 980 000</td></tr><tr><td class="">дек 25</td><td class="num">3 340 000</td><td class="num">3 010 000</td><td class="num">330 000</td><td class="num">2 310 000</td></tr><tr><td class="">янв 26</td><td class="num">2 180 000</td><td class="num">2 460 000</td><td class="num">-280 000</td><td class="num">2 030 000</td></tr><tr><td class="">фев 26</td><td class="num">2 560 000</td><td class="num">2 310 000</td><td class="num">250 000</td><td class="num">2 280 000</td></tr><tr><td class="">мар 26</td><td class="num">3 020 000</td><td class="num">2 640 000</td><td class="num">380 000</td><td class="num">2 660 000</td></tr><tr><td class="">апр 26</td><td class="num">3 240 000</td><td class="num">2 790 000</td><td class="num">450 000</td><td class="num">3 110 000</td></tr><tr><td class="">май 26</td><td class="num">2 830 000</td><td class="num">2 610 000</td><td class="num">220 000</td><td class="num">3 330 000</td></tr><tr><td class="">июн 26</td><td class="num">3 420 000</td><td class="num">2 900 000</td><td class="num">520 000</td><td class="num">3 850 000</td></tr><tr><td class="">июл 26</td><td class="num">3 780 000</td><td class="num">3 150 000</td><td class="num">630 000</td><td class="num">4 480 000</td></tr><tr><td class="">авг 26</td><td class="num">3 960 000</td><td class="num">3 320 000</td><td class="num">640 000</td><td class="num">5 120 000</td></tr></tbody></table></div>
-</div>
+<section id="pribyl">
+  <div class="sechead"><h2>Прибыль по месяцам</h2>
+    <p class="muted">Из чего состоит каждый рубль выручки: что ушло поставщикам, что на содержание бизнеса, что осталось.</p></div>
+  <div class="grid2">
+    <div class="card"><div class="legend"><span><i class="swatch" style="background:var(--s2)"></i>себестоимость</span><span><i class="swatch" style="background:var(--s4)"></i>операционные расходы</span><span><i class="swatch" style="background:var(--good)"></i>чистая прибыль</span><span class="muted">высота столбца = выручка</span></div><div class="chartbox"><svg class="chart" viewBox="0 0 920 300" role="img" aria-label="Выручка по месяцам: себестоимость, расходы и прибыль"><line x1="56" x2="904" y1="260.0" y2="260.0" stroke="var(--axis)"/><text x="48" y="264.0" text-anchor="end" class="ax">0</text><line x1="56" x2="904" y1="202.0" y2="202.0" stroke="var(--grid)"/><text x="48" y="206.0" text-anchor="end" class="ax">1,2 млн</text><line x1="56" x2="904" y1="144.0" y2="144.0" stroke="var(--grid)"/><text x="48" y="148.0" text-anchor="end" class="ax">2,4 млн</text><line x1="56" x2="904" y1="86.0" y2="86.0" stroke="var(--grid)"/><text x="48" y="90.0" text-anchor="end" class="ax">3,6 млн</text><line x1="56" x2="904" y1="28.0" y2="28.0" stroke="var(--grid)"/><text x="48" y="32.0" text-anchor="end" class="ax">4,8 млн</text><g class="hit" data-tip="сен 25: выручка 2 380 000 ₽ · себестоимость 1 260 000 ₽ · расходы 720 000 ₽ · прибыль 400 000 ₽ (16,8%)"><rect x="63.2" y="28" width="56.3" height="232" fill="transparent"/><rect x="77.3" y="199.1" width="28.0" height="58.9" rx="0" fill="var(--s2)"/><rect x="77.3" y="164.3" width="28.0" height="30.8" rx="0" fill="var(--s4)"/><rect x="77.3" y="145.0" width="28.0" height="17.3" rx="4" fill="var(--good)"/></g><text x="91.3" y="278" text-anchor="middle" class="ax">сен 25</text><g class="hit" data-tip="окт 25: выручка 2 640 000 ₽ · себестоимость 1 410 000 ₽ · расходы 745 000 ₽ · прибыль 485 000 ₽ (18,4%)"><rect x="133.9" y="28" width="56.3" height="232" fill="transparent"/><rect x="148.0" y="191.9" width="28.0" height="66.1" rx="0" fill="var(--s2)"/><rect x="148.0" y="155.8" width="28.0" height="32.0" rx="0" fill="var(--s4)"/><rect x="148.0" y="132.4" width="28.0" height="21.4" rx="4" fill="var(--good)"/></g><text x="162.0" y="278" text-anchor="middle" class="ax">окт 25</text><g class="hit" data-tip="ноя 25: выручка 2 910 000 ₽ · себестоимость 1 560 000 ₽ · расходы 780 000 ₽ · прибыль 570 000 ₽ (19,6%)"><rect x="204.5" y="28" width="56.3" height="232" fill="transparent"/><rect x="218.7" y="184.6" width="28.0" height="73.4" rx="0" fill="var(--s2)"/><rect x="218.7" y="146.9" width="28.0" height="33.7" rx="0" fill="var(--s4)"/><rect x="218.7" y="119.4" width="28.0" height="25.5" rx="4" fill="var(--good)"/></g><text x="232.7" y="278" text-anchor="middle" class="ax">ноя 25</text><g class="hit" data-tip="дек 25: выручка 3 480 000 ₽ · себестоимость 1 890 000 ₽ · расходы 905 000 ₽ · прибыль 685 000 ₽ (19,7%)"><rect x="275.2" y="28" width="56.3" height="232" fill="transparent"/><rect x="289.3" y="168.6" width="28.0" height="89.4" rx="0" fill="var(--s2)"/><rect x="289.3" y="124.9" width="28.0" height="39.7" rx="0" fill="var(--s4)"/><rect x="289.3" y="91.8" width="28.0" height="31.1" rx="4" fill="var(--good)"/></g><text x="303.3" y="278" text-anchor="middle" class="ax">дек 25</text><g class="hit" data-tip="янв 26: выручка 1 950 000 ₽ · себестоимость 1 040 000 ₽ · расходы 690 000 ₽ · прибыль 220 000 ₽ (11,3%)"><rect x="345.9" y="28" width="56.3" height="232" fill="transparent"/><rect x="360.0" y="209.7" width="28.0" height="48.3" rx="0" fill="var(--s2)"/><rect x="360.0" y="176.4" width="28.0" height="29.3" rx="0" fill="var(--s4)"/><rect x="360.0" y="165.8" width="28.0" height="8.6" rx="4" fill="var(--good)"/><text x="374.0" y="158.8" text-anchor="middle" class="lab">1,9 млн</text></g><text x="374.0" y="278" text-anchor="middle" class="ax">янв 26</text><g class="hit" data-tip="фев 26: выручка 2 720 000 ₽ · себестоимость 1 450 000 ₽ · расходы 760 000 ₽ · прибыль 510 000 ₽ (18,8%)"><rect x="416.5" y="28" width="56.3" height="232" fill="transparent"/><rect x="430.7" y="189.9" width="28.0" height="68.1" rx="0" fill="var(--s2)"/><rect x="430.7" y="153.2" width="28.0" height="32.7" rx="0" fill="var(--s4)"/><rect x="430.7" y="128.5" width="28.0" height="22.7" rx="4" fill="var(--good)"/></g><text x="444.7" y="278" text-anchor="middle" class="ax">фев 26</text><g class="hit" data-tip="мар 26: выручка 3 150 000 ₽ · себестоимость 1 680 000 ₽ · расходы 815 000 ₽ · прибыль 655 000 ₽ (20,8%)"><rect x="487.2" y="28" width="56.3" height="232" fill="transparent"/><rect x="501.3" y="178.8" width="28.0" height="79.2" rx="0" fill="var(--s2)"/><rect x="501.3" y="139.4" width="28.0" height="35.4" rx="0" fill="var(--s4)"/><rect x="501.3" y="107.8" width="28.0" height="29.7" rx="4" fill="var(--good)"/></g><text x="515.3" y="278" text-anchor="middle" class="ax">мар 26</text><g class="hit" data-tip="апр 26: выручка 3 380 000 ₽ · себестоимость 1 790 000 ₽ · расходы 840 000 ₽ · прибыль 750 000 ₽ (22,2%)"><rect x="557.9" y="28" width="56.3" height="232" fill="transparent"/><rect x="572.0" y="173.5" width="28.0" height="84.5" rx="0" fill="var(--s2)"/><rect x="572.0" y="132.9" width="28.0" height="36.6" rx="0" fill="var(--s4)"/><rect x="572.0" y="96.6" width="28.0" height="34.2" rx="4" fill="var(--good)"/></g><text x="586.0" y="278" text-anchor="middle" class="ax">апр 26</text><g class="hit" data-tip="май 26: выручка 2 890 000 ₽ · себестоимость 1 540 000 ₽ · расходы 800 000 ₽ · прибыль 550 000 ₽ (19,0%)"><rect x="628.5" y="28" width="56.3" height="232" fill="transparent"/><rect x="642.7" y="185.6" width="28.0" height="72.4" rx="0" fill="var(--s2)"/><rect x="642.7" y="146.9" width="28.0" height="34.7" rx="0" fill="var(--s4)"/><rect x="642.7" y="120.3" width="28.0" height="24.6" rx="4" fill="var(--good)"/></g><text x="656.7" y="278" text-anchor="middle" class="ax">май 26</text><g class="hit" data-tip="июн 26: выручка 3 610 000 ₽ · себестоимость 1 920 000 ₽ · расходы 870 000 ₽ · прибыль 820 000 ₽ (22,7%)"><rect x="699.2" y="28" width="56.3" height="232" fill="transparent"/><rect x="713.3" y="167.2" width="28.0" height="90.8" rx="0" fill="var(--s2)"/><rect x="713.3" y="125.1" width="28.0" height="38.0" rx="0" fill="var(--s4)"/><rect x="713.3" y="85.5" width="28.0" height="37.6" rx="4" fill="var(--good)"/></g><text x="727.3" y="278" text-anchor="middle" class="ax">июн 26</text><g class="hit" data-tip="июл 26: выручка 3 940 000 ₽ · себестоимость 2 090 000 ₽ · расходы 910 000 ₽ · прибыль 940 000 ₽ (23,9%)"><rect x="769.9" y="28" width="56.3" height="232" fill="transparent"/><rect x="784.0" y="159.0" width="28.0" height="99.0" rx="0" fill="var(--s2)"/><rect x="784.0" y="115.0" width="28.0" height="40.0" rx="0" fill="var(--s4)"/><rect x="784.0" y="69.6" width="28.0" height="43.4" rx="4" fill="var(--good)"/></g><text x="798.0" y="278" text-anchor="middle" class="ax">июл 26</text><g class="hit" data-tip="авг 26: выручка 4 120 000 ₽ · себестоимость 2 180 000 ₽ · расходы 935 000 ₽ · прибыль 1 005 000 ₽ (24,4%)"><rect x="840.5" y="28" width="56.3" height="232" fill="transparent"/><rect x="854.7" y="154.6" width="28.0" height="103.4" rx="0" fill="var(--s2)"/><rect x="854.7" y="109.4" width="28.0" height="41.2" rx="0" fill="var(--s4)"/><rect x="854.7" y="60.9" width="28.0" height="46.6" rx="4" fill="var(--good)"/><text x="868.7" y="53.9" text-anchor="middle" class="lab">4,1 млн</text></g><text x="868.7" y="278" text-anchor="middle" class="ax">авг 26</text></svg></div>
+      <div class="callout"><b>Январь</b>: выручка 1,9 млн, прибыль всего 220 тыс ₽ -
+        сезонный спад при тех же постоянных расходах. К декабрю стоит копить подушку.</div></div>
+    <div class="card"><h3>Рентабельность по месяцам</h3><svg class="chart chart-sm" viewBox="0 0 440 240" role="img" aria-label="Рентабельность по месяцам"><line x1="46" x2="420" y1="204.0" y2="204.0" stroke="var(--axis)"/><text x="38" y="208.0" text-anchor="end" class="ax">10%</text><line x1="46" x2="420" y1="144.0" y2="144.0" stroke="var(--grid)"/><text x="38" y="148.0" text-anchor="end" class="ax">15%</text><line x1="46" x2="420" y1="84.0" y2="84.0" stroke="var(--grid)"/><text x="38" y="88.0" text-anchor="end" class="ax">20%</text><line x1="46" x2="420" y1="24.0" y2="24.0" stroke="var(--grid)"/><text x="38" y="28.0" text-anchor="end" class="ax">25%</text><path d="M61.6,122.3 L92.8,103.5 L123.9,88.9 L155.1,87.8 L186.2,188.6 L217.4,99.0 L248.6,74.5 L279.8,57.7 L310.9,95.6 L342.1,51.4 L373.2,37.7 L404.4,31.3" fill="none" stroke="var(--s3)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><g class="hit" data-tip="сен 25: рентабельность 16,8%, прибыль 400 000 ₽"><rect x="46.0" y="24" width="31.2" height="180" fill="transparent"/><circle cx="61.6" cy="122.3" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="61.6" y="222" text-anchor="middle" class="ax">сен 25</text><g class="hit" data-tip="окт 25: рентабельность 18,4%, прибыль 485 000 ₽"><rect x="77.2" y="24" width="31.2" height="180" fill="transparent"/><circle cx="92.8" cy="103.5" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><g class="hit" data-tip="ноя 25: рентабельность 19,6%, прибыль 570 000 ₽"><rect x="108.3" y="24" width="31.2" height="180" fill="transparent"/><circle cx="123.9" cy="88.9" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="123.9" y="222" text-anchor="middle" class="ax">ноя 25</text><g class="hit" data-tip="дек 25: рентабельность 19,7%, прибыль 685 000 ₽"><rect x="139.5" y="24" width="31.2" height="180" fill="transparent"/><circle cx="155.1" cy="87.8" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><g class="hit" data-tip="янв 26: рентабельность 11,3%, прибыль 220 000 ₽"><rect x="170.7" y="24" width="31.2" height="180" fill="transparent"/><circle cx="186.2" cy="188.6" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="186.2" y="222" text-anchor="middle" class="ax">янв 26</text><g class="hit" data-tip="фев 26: рентабельность 18,8%, прибыль 510 000 ₽"><rect x="201.8" y="24" width="31.2" height="180" fill="transparent"/><circle cx="217.4" cy="99.0" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><g class="hit" data-tip="мар 26: рентабельность 20,8%, прибыль 655 000 ₽"><rect x="233.0" y="24" width="31.2" height="180" fill="transparent"/><circle cx="248.6" cy="74.5" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="248.6" y="222" text-anchor="middle" class="ax">мар 26</text><g class="hit" data-tip="апр 26: рентабельность 22,2%, прибыль 750 000 ₽"><rect x="264.2" y="24" width="31.2" height="180" fill="transparent"/><circle cx="279.8" cy="57.7" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><g class="hit" data-tip="май 26: рентабельность 19,0%, прибыль 550 000 ₽"><rect x="295.3" y="24" width="31.2" height="180" fill="transparent"/><circle cx="310.9" cy="95.6" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="310.9" y="222" text-anchor="middle" class="ax">май 26</text><g class="hit" data-tip="июн 26: рентабельность 22,7%, прибыль 820 000 ₽"><rect x="326.5" y="24" width="31.2" height="180" fill="transparent"/><circle cx="342.1" cy="51.4" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><g class="hit" data-tip="июл 26: рентабельность 23,9%, прибыль 940 000 ₽"><rect x="357.7" y="24" width="31.2" height="180" fill="transparent"/><circle cx="373.2" cy="37.7" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="373.2" y="222" text-anchor="middle" class="ax">июл 26</text><g class="hit" data-tip="авг 26: рентабельность 24,4%, прибыль 1 005 000 ₽"><rect x="388.8" y="24" width="31.2" height="180" fill="transparent"/><circle cx="404.4" cy="31.3" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><text x="61.6" y="110.3" text-anchor="middle" class="lab">16,8%</text><text x="404.4" y="19.3" text-anchor="middle" class="lab">24,4%</text></svg>
+      <div class="callout good">Каждый месяц с февраля маржа выше, чем годом раньше в тот же сезон. Это главный признак, что бизнес здоров, а не просто «больше продал».</div></div>
+  </div>
+  <details class="tbl"><summary>Цифры таблицей: прибыли и убытки<span class="arrow"></span></summary><div class="body"><div class="tblbox"><table><thead><tr><th class="">Месяц</th><th class="num">Выручка, ₽</th><th class="num">Себестоимость, ₽</th><th class="num">Расходы, ₽</th><th class="num">Прибыль, ₽</th><th class="">Рентаб.</th></tr></thead><tbody><tr><td>сен 25</td><td class="num">2 380 000</td><td class="num">1 260 000</td><td class="num">720 000</td><td class="num">400 000</td><td class="num">16,8%</td></tr><tr><td>окт 25</td><td class="num">2 640 000</td><td class="num">1 410 000</td><td class="num">745 000</td><td class="num">485 000</td><td class="num">18,4%</td></tr><tr><td>ноя 25</td><td class="num">2 910 000</td><td class="num">1 560 000</td><td class="num">780 000</td><td class="num">570 000</td><td class="num">19,6%</td></tr><tr><td>дек 25</td><td class="num">3 480 000</td><td class="num">1 890 000</td><td class="num">905 000</td><td class="num">685 000</td><td class="num">19,7%</td></tr><tr><td>янв 26</td><td class="num">1 950 000</td><td class="num">1 040 000</td><td class="num">690 000</td><td class="num">220 000</td><td class="num">11,3%</td></tr><tr><td>фев 26</td><td class="num">2 720 000</td><td class="num">1 450 000</td><td class="num">760 000</td><td class="num">510 000</td><td class="num">18,8%</td></tr><tr><td>мар 26</td><td class="num">3 150 000</td><td class="num">1 680 000</td><td class="num">815 000</td><td class="num">655 000</td><td class="num">20,8%</td></tr><tr><td>апр 26</td><td class="num">3 380 000</td><td class="num">1 790 000</td><td class="num">840 000</td><td class="num">750 000</td><td class="num">22,2%</td></tr><tr><td>май 26</td><td class="num">2 890 000</td><td class="num">1 540 000</td><td class="num">800 000</td><td class="num">550 000</td><td class="num">19,0%</td></tr><tr><td>июн 26</td><td class="num">3 610 000</td><td class="num">1 920 000</td><td class="num">870 000</td><td class="num">820 000</td><td class="num">22,7%</td></tr><tr><td>июл 26</td><td class="num">3 940 000</td><td class="num">2 090 000</td><td class="num">910 000</td><td class="num">940 000</td><td class="num">23,9%</td></tr><tr><td>авг 26</td><td class="num">4 120 000</td><td class="num">2 180 000</td><td class="num">935 000</td><td class="num">1 005 000</td><td class="num">24,4%</td></tr></tbody><tfoot><tr><td>Итого</td><td class="num">37 170 000</td><td class="num">19 810 000</td><td class="num">9 770 000</td><td class="num">7 590 000</td><td></td></tr></tfoot></table></div></div></details>
+</section>
 
-<div class="card">
-  <h2>Куда уходят деньги</h2>
-  <p class="muted">Операционные расходы за 12 месяцев в разрезе статей.</p>
-  <div class="chartbox"><svg class="chart" viewBox="0 0 760 208" width="760" height="208" role="img" preserveAspectRatio="xMinYMid meet"><line x1="168.0" x2="168.0" y1="6" y2="186" stroke="var(--axis)" stroke-width="1"/><text x="168.0" y="201" text-anchor="middle" fill="var(--muted)" font-size="11">0</text><line x1="344.0" x2="344.0" y1="6" y2="186" stroke="var(--grid)" stroke-width="1"/><text x="344.0" y="201" text-anchor="middle" fill="var(--muted)" font-size="11">2,0 млн</text><line x1="520.0" x2="520.0" y1="6" y2="186" stroke="var(--grid)" stroke-width="1"/><text x="520.0" y="201" text-anchor="middle" fill="var(--muted)" font-size="11">4,0 млн</text><line x1="696.0" x2="696.0" y1="6" y2="186" stroke="var(--grid)" stroke-width="1"/><text x="696.0" y="201" text-anchor="middle" fill="var(--muted)" font-size="11">6,0 млн</text><text x="158" y="24" text-anchor="end" fill="var(--ink2)" font-size="12">Оплата труда и взносы</text><rect x="168" y="11" width="469.9" height="16" rx="4" fill="var(--s1)"><title>Оплата труда и взносы: 5 340 000 ₽ за 12 месяцев</title></rect><text x="645.9" y="24" fill="var(--ink2)" font-size="12">5,3 млн</text><text x="158" y="54" text-anchor="end" fill="var(--ink2)" font-size="12">Аренда и содержание</text><rect x="168" y="41" width="142.6" height="16" rx="4" fill="var(--s1)"><title>Аренда и содержание: 1 620 000 ₽ за 12 месяцев</title></rect><text x="318.6" y="54" fill="var(--ink2)" font-size="12">1,6 млн</text><text x="158" y="84" text-anchor="end" fill="var(--ink2)" font-size="12">Реклама и продвижение</text><rect x="168" y="71" width="103.8" height="16" rx="4" fill="var(--s1)"><title>Реклама и продвижение: 1 180 000 ₽ за 12 месяцев</title></rect><text x="279.8" y="84" fill="var(--ink2)" font-size="12">1,2 млн</text><text x="158" y="114" text-anchor="end" fill="var(--ink2)" font-size="12">Логистика</text><rect x="168" y="101" width="68.6" height="16" rx="4" fill="var(--s1)"><title>Логистика: 780 000 ₽ за 12 месяцев</title></rect><text x="244.6" y="114" fill="var(--ink2)" font-size="12">780 тыс</text><text x="158" y="144" text-anchor="end" fill="var(--ink2)" font-size="12">Прочие</text><rect x="168" y="131" width="37.8" height="16" rx="4" fill="var(--s1)"><title>Прочие: 430 000 ₽ за 12 месяцев</title></rect><text x="213.8" y="144" fill="var(--ink2)" font-size="12">430 тыс</text><text x="158" y="174" text-anchor="end" fill="var(--ink2)" font-size="12">ПО, связь, сервисы</text><rect x="168" y="161" width="37.0" height="16" rx="4" fill="var(--s1)"><title>ПО, связь, сервисы: 420 000 ₽ за 12 месяцев</title></rect><text x="213.0" y="174" fill="var(--ink2)" font-size="12">420 тыс</text></svg></div>
-</div>
+<section id="dengi">
+  <div class="sechead"><h2>Деньги на счетах</h2>
+    <p class="muted">Прибыль и деньги - разные вещи. Здесь видно реальный остаток и чем он менялся каждый месяц.</p></div>
+  <div class="card">
+    <h3>Остаток на конец месяца</h3>
+    <div class="chartbox"><svg class="chart" viewBox="0 0 920 240" role="img" aria-label="Остаток денег на конец месяца"><line x1="56" x2="896" y1="204.0" y2="204.0" stroke="var(--axis)"/><text x="48" y="208.0" text-anchor="end" class="ax">0</text><line x1="56" x2="896" y1="159.0" y2="159.0" stroke="var(--grid)"/><text x="48" y="163.0" text-anchor="end" class="ax">1,5 млн</text><line x1="56" x2="896" y1="114.0" y2="114.0" stroke="var(--grid)"/><text x="48" y="118.0" text-anchor="end" class="ax">3 млн</text><line x1="56" x2="896" y1="69.0" y2="69.0" stroke="var(--grid)"/><text x="48" y="73.0" text-anchor="end" class="ax">4,5 млн</text><line x1="56" x2="896" y1="24.0" y2="24.0" stroke="var(--grid)"/><text x="48" y="28.0" text-anchor="end" class="ax">6 млн</text><path d="M91.0,161.7 L161.0,154.8 L231.0,144.6 L301.0,134.7 L371.0,143.1 L441.0,135.6 L511.0,124.2 L581.0,110.7 L651.0,104.1 L721.0,88.5 L791.0,69.6 L861.0,50.4 L861.0,204.0 L91.0,204.0 Z" fill="var(--s1)" opacity=".10"/><path d="M91.0,161.7 L161.0,154.8 L231.0,144.6 L301.0,134.7 L371.0,143.1 L441.0,135.6 L511.0,124.2 L581.0,110.7 L651.0,104.1 L721.0,88.5 L791.0,69.6 L861.0,50.4" fill="none" stroke="var(--s1)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><g class="hit" data-tip="сен 25: поступило 2 210 000 ₽ · ушло 2 050 000 ₽ · сальдо +160 000 ₽ · остаток 1 410 000 ₽"><rect x="56.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="91.0" cy="161.7" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="91.0" y="222" text-anchor="middle" class="ax">сен 25</text><g class="hit" data-tip="окт 25: поступило 2 490 000 ₽ · ушло 2 260 000 ₽ · сальдо +230 000 ₽ · остаток 1 640 000 ₽"><rect x="126.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="161.0" cy="154.8" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="161.0" y="222" text-anchor="middle" class="ax">окт 25</text><g class="hit" data-tip="ноя 25: поступило 2 760 000 ₽ · ушло 2 420 000 ₽ · сальдо +340 000 ₽ · остаток 1 980 000 ₽"><rect x="196.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="231.0" cy="144.6" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="231.0" y="222" text-anchor="middle" class="ax">ноя 25</text><g class="hit" data-tip="дек 25: поступило 3 340 000 ₽ · ушло 3 010 000 ₽ · сальдо +330 000 ₽ · остаток 2 310 000 ₽"><rect x="266.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="301.0" cy="134.7" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="301.0" y="222" text-anchor="middle" class="ax">дек 25</text><g class="hit" data-tip="янв 26: поступило 2 180 000 ₽ · ушло 2 460 000 ₽ · сальдо −280 000 ₽ · остаток 2 030 000 ₽"><rect x="336.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="371.0" cy="143.1" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="371.0" y="222" text-anchor="middle" class="ax">янв 26</text><g class="hit" data-tip="фев 26: поступило 2 560 000 ₽ · ушло 2 310 000 ₽ · сальдо +250 000 ₽ · остаток 2 280 000 ₽"><rect x="406.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="441.0" cy="135.6" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="441.0" y="222" text-anchor="middle" class="ax">фев 26</text><g class="hit" data-tip="мар 26: поступило 3 020 000 ₽ · ушло 2 640 000 ₽ · сальдо +380 000 ₽ · остаток 2 660 000 ₽"><rect x="476.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="511.0" cy="124.2" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="511.0" y="222" text-anchor="middle" class="ax">мар 26</text><g class="hit" data-tip="апр 26: поступило 3 240 000 ₽ · ушло 2 790 000 ₽ · сальдо +450 000 ₽ · остаток 3 110 000 ₽"><rect x="546.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="581.0" cy="110.7" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="581.0" y="222" text-anchor="middle" class="ax">апр 26</text><g class="hit" data-tip="май 26: поступило 2 830 000 ₽ · ушло 2 610 000 ₽ · сальдо +220 000 ₽ · остаток 3 330 000 ₽"><rect x="616.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="651.0" cy="104.1" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="651.0" y="222" text-anchor="middle" class="ax">май 26</text><g class="hit" data-tip="июн 26: поступило 3 420 000 ₽ · ушло 2 900 000 ₽ · сальдо +520 000 ₽ · остаток 3 850 000 ₽"><rect x="686.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="721.0" cy="88.5" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="721.0" y="222" text-anchor="middle" class="ax">июн 26</text><g class="hit" data-tip="июл 26: поступило 3 780 000 ₽ · ушло 3 150 000 ₽ · сальдо +630 000 ₽ · остаток 4 480 000 ₽"><rect x="756.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="791.0" cy="69.6" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="791.0" y="222" text-anchor="middle" class="ax">июл 26</text><g class="hit" data-tip="авг 26: поступило 3 960 000 ₽ · ушло 3 320 000 ₽ · сальдо +640 000 ₽ · остаток 5 120 000 ₽"><rect x="826.0" y="24" width="70.0" height="180" fill="transparent"/><circle cx="861.0" cy="50.4" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><text x="861.0" y="222" text-anchor="middle" class="ax">авг 26</text><text x="861.0" y="38.4" text-anchor="middle" class="lab">5,1 млн</text><text x="91.0" y="149.7" text-anchor="middle" class="lab">1,4 млн</text></svg></div>
+    <h3 style="margin-top:14px">Поступило минус ушло</h3>
+    <div class="chartbox"><svg class="chart" viewBox="0 0 920 150" role="img" aria-label="Сальдо поступлений и платежей по месяцам"><line x1="56" x2="896" y1="114.0" y2="114.0" stroke="var(--grid)"/><text x="48" y="118.0" text-anchor="end" class="ax">-800 тыс</text><line x1="56" x2="896" y1="67.0" y2="67.0" stroke="var(--axis)"/><text x="48" y="71.0" text-anchor="end" class="ax">0</text><line x1="56" x2="896" y1="20.0" y2="20.0" stroke="var(--grid)"/><text x="48" y="24.0" text-anchor="end" class="ax">+800 тыс</text><g class="hit" data-tip="сен 25: поступило 2 210 000 ₽ · ушло 2 050 000 ₽ · сальдо +160 000 ₽ · остаток 1 410 000 ₽"><rect x="56.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="77.0" y="57.6" width="28.0" height="9.4" rx="3" fill="var(--good)"/></g><text x="91.0" y="132" text-anchor="middle" class="ax">сен 25</text><g class="hit" data-tip="окт 25: поступило 2 490 000 ₽ · ушло 2 260 000 ₽ · сальдо +230 000 ₽ · остаток 1 640 000 ₽"><rect x="126.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="147.0" y="53.5" width="28.0" height="13.5" rx="3" fill="var(--good)"/></g><text x="161.0" y="132" text-anchor="middle" class="ax">окт 25</text><g class="hit" data-tip="ноя 25: поступило 2 760 000 ₽ · ушло 2 420 000 ₽ · сальдо +340 000 ₽ · остаток 1 980 000 ₽"><rect x="196.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="217.0" y="47.0" width="28.0" height="20.0" rx="3" fill="var(--good)"/></g><text x="231.0" y="132" text-anchor="middle" class="ax">ноя 25</text><g class="hit" data-tip="дек 25: поступило 3 340 000 ₽ · ушло 3 010 000 ₽ · сальдо +330 000 ₽ · остаток 2 310 000 ₽"><rect x="266.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="287.0" y="47.6" width="28.0" height="19.4" rx="3" fill="var(--good)"/></g><text x="301.0" y="132" text-anchor="middle" class="ax">дек 25</text><g class="hit" data-tip="янв 26: поступило 2 180 000 ₽ · ушло 2 460 000 ₽ · сальдо −280 000 ₽ · остаток 2 030 000 ₽"><rect x="336.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="357.0" y="67.0" width="28.0" height="16.5" rx="3" fill="var(--critical)"/></g><text x="371.0" y="132" text-anchor="middle" class="ax">янв 26</text><g class="hit" data-tip="фев 26: поступило 2 560 000 ₽ · ушло 2 310 000 ₽ · сальдо +250 000 ₽ · остаток 2 280 000 ₽"><rect x="406.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="427.0" y="52.3" width="28.0" height="14.7" rx="3" fill="var(--good)"/></g><text x="441.0" y="132" text-anchor="middle" class="ax">фев 26</text><g class="hit" data-tip="мар 26: поступило 3 020 000 ₽ · ушло 2 640 000 ₽ · сальдо +380 000 ₽ · остаток 2 660 000 ₽"><rect x="476.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="497.0" y="44.7" width="28.0" height="22.3" rx="3" fill="var(--good)"/></g><text x="511.0" y="132" text-anchor="middle" class="ax">мар 26</text><g class="hit" data-tip="апр 26: поступило 3 240 000 ₽ · ушло 2 790 000 ₽ · сальдо +450 000 ₽ · остаток 3 110 000 ₽"><rect x="546.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="567.0" y="40.6" width="28.0" height="26.4" rx="3" fill="var(--good)"/></g><text x="581.0" y="132" text-anchor="middle" class="ax">апр 26</text><g class="hit" data-tip="май 26: поступило 2 830 000 ₽ · ушло 2 610 000 ₽ · сальдо +220 000 ₽ · остаток 3 330 000 ₽"><rect x="616.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="637.0" y="54.1" width="28.0" height="12.9" rx="3" fill="var(--good)"/></g><text x="651.0" y="132" text-anchor="middle" class="ax">май 26</text><g class="hit" data-tip="июн 26: поступило 3 420 000 ₽ · ушло 2 900 000 ₽ · сальдо +520 000 ₽ · остаток 3 850 000 ₽"><rect x="686.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="707.0" y="36.5" width="28.0" height="30.5" rx="3" fill="var(--good)"/></g><text x="721.0" y="132" text-anchor="middle" class="ax">июн 26</text><g class="hit" data-tip="июл 26: поступило 3 780 000 ₽ · ушло 3 150 000 ₽ · сальдо +630 000 ₽ · остаток 4 480 000 ₽"><rect x="756.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="777.0" y="30.0" width="28.0" height="37.0" rx="3" fill="var(--good)"/></g><text x="791.0" y="132" text-anchor="middle" class="ax">июл 26</text><g class="hit" data-tip="авг 26: поступило 3 960 000 ₽ · ушло 3 320 000 ₽ · сальдо +640 000 ₽ · остаток 5 120 000 ₽"><rect x="826.0" y="20" width="70.0" height="94" fill="transparent"/><rect x="847.0" y="29.4" width="28.0" height="37.6" rx="3" fill="var(--good)"/></g><text x="861.0" y="132" text-anchor="middle" class="ax">авг 26</text></svg></div>
+    <div class="callout warn"><b>Январь</b>: по отчёту прибыль 220 000 ₽, а денег стало меньше на 280 000 ₽ -
+      клиенты платили позже, а зарплату и аренду платили как обычно. Такие расхождения и ловит ДДС.</div>
+  </div>
+  <details class="tbl"><summary>Цифры таблицей: движение денег<span class="arrow"></span></summary><div class="body"><div class="tblbox"><table><thead><tr><th class="">Месяц</th><th class="num">Поступило, ₽</th><th class="num">Ушло, ₽</th><th class="num">Сальдо, ₽</th><th class="num">Остаток на конец, ₽</th></tr></thead><tbody><tr><td>сен 25</td><td class="num">2 210 000</td><td class="num">2 050 000</td><td class="num">160 000</td><td class="num">1 410 000</td></tr><tr><td>окт 25</td><td class="num">2 490 000</td><td class="num">2 260 000</td><td class="num">230 000</td><td class="num">1 640 000</td></tr><tr><td>ноя 25</td><td class="num">2 760 000</td><td class="num">2 420 000</td><td class="num">340 000</td><td class="num">1 980 000</td></tr><tr><td>дек 25</td><td class="num">3 340 000</td><td class="num">3 010 000</td><td class="num">330 000</td><td class="num">2 310 000</td></tr><tr><td>янв 26</td><td class="num">2 180 000</td><td class="num">2 460 000</td><td class="num neg">-280 000</td><td class="num">2 030 000</td></tr><tr><td>фев 26</td><td class="num">2 560 000</td><td class="num">2 310 000</td><td class="num">250 000</td><td class="num">2 280 000</td></tr><tr><td>мар 26</td><td class="num">3 020 000</td><td class="num">2 640 000</td><td class="num">380 000</td><td class="num">2 660 000</td></tr><tr><td>апр 26</td><td class="num">3 240 000</td><td class="num">2 790 000</td><td class="num">450 000</td><td class="num">3 110 000</td></tr><tr><td>май 26</td><td class="num">2 830 000</td><td class="num">2 610 000</td><td class="num">220 000</td><td class="num">3 330 000</td></tr><tr><td>июн 26</td><td class="num">3 420 000</td><td class="num">2 900 000</td><td class="num">520 000</td><td class="num">3 850 000</td></tr><tr><td>июл 26</td><td class="num">3 780 000</td><td class="num">3 150 000</td><td class="num">630 000</td><td class="num">4 480 000</td></tr><tr><td>авг 26</td><td class="num">3 960 000</td><td class="num">3 320 000</td><td class="num">640 000</td><td class="num">5 120 000</td></tr></tbody><tfoot><tr><td>Итого</td><td class="num">35 790 000</td><td class="num">31 920 000</td><td class="num">3 870 000</td><td></td></tr></tfoot></table></div></div></details>
+</section>
 
-<div class="card">
-  <h2>Из чего складывается выручка за год</h2>
-  <div class="stack"><span class="seg" style="width:53.30%;background:var(--s2)" title="Себестоимость: 19 810 000 ₽ (53%)"></span><span class="seg" style="width:26.28%;background:var(--axis)" title="Операционные расходы: 9 770 000 ₽ (26%)"></span><span class="seg" style="width:20.42%;background:var(--good)" title="Чистая прибыль: 7 590 000 ₽ (20%)"></span></div><div class="stlegend"><span><i class="swatch" style="background:var(--s2)"></i>себестоимость 19 810 000 ₽</span><span><i class="swatch" style="background:var(--axis)"></i>расходы 9 770 000 ₽</span><span><i class="swatch" style="background:var(--good)"></i>прибыль 7 590 000 ₽</span></div>
-</div>
+<section id="rashody">
+  <div class="sechead"><h2>Куда уходят деньги</h2>
+    <p class="muted">Год целиком: сколько из выручки дошло до прибыли и на что ушли операционные расходы.</p></div>
+  <div class="card"><h3>От выручки к прибыли за год</h3><div class="chartbox"><svg class="chart" viewBox="0 0 920 280" role="img" aria-label="Водопад: от выручки к прибыли"><line x1="56" x2="904" y1="236.0" y2="236.0" stroke="var(--axis)"/><text x="48" y="240.0" text-anchor="end" class="ax">0</text><line x1="56" x2="904" y1="184.0" y2="184.0" stroke="var(--grid)"/><text x="48" y="188.0" text-anchor="end" class="ax">12 млн</text><line x1="56" x2="904" y1="132.0" y2="132.0" stroke="var(--grid)"/><text x="48" y="136.0" text-anchor="end" class="ax">24 млн</text><line x1="56" x2="904" y1="80.0" y2="80.0" stroke="var(--grid)"/><text x="48" y="84.0" text-anchor="end" class="ax">36 млн</text><line x1="56" x2="904" y1="28.0" y2="28.0" stroke="var(--grid)"/><text x="48" y="32.0" text-anchor="end" class="ax">48 млн</text><g class="hit" data-tip="Выручка за год: 37 170 000 ₽"><rect x="107.0" y="74.9" width="110.0" height="161.1" rx="4" fill="var(--s1)"/></g><text x="162.0" y="66.9" text-anchor="middle" class="lab">37,2 млн</text><text x="162.0" y="254" text-anchor="middle" class="ax">Выручка</text><line x1="217.0" x2="319.0" y1="74.9" y2="74.9" stroke="var(--axis)" stroke-dasharray="3 3"/><g class="hit" data-tip="Себестоимость: 19 810 000 ₽, 53,3% выручки"><rect x="319.0" y="74.9" width="110.0" height="85.8" rx="4" fill="var(--s2)"/></g><text x="374.0" y="66.9" text-anchor="middle" class="lab">−19,8 млн</text><text x="374.0" y="254" text-anchor="middle" class="ax">Себестоимость</text><text x="374.0" y="270" text-anchor="middle" class="ax muted">53% выручки</text><line x1="429.0" x2="531.0" y1="160.8" y2="160.8" stroke="var(--axis)" stroke-dasharray="3 3"/><g class="hit" data-tip="Операционные расходы: 9 770 000 ₽, 26,3% выручки"><rect x="531.0" y="160.8" width="110.0" height="42.3" rx="4" fill="var(--s2)"/></g><text x="586.0" y="152.8" text-anchor="middle" class="lab">−9,8 млн</text><text x="586.0" y="254" text-anchor="middle" class="ax">Опер. расходы</text><text x="586.0" y="270" text-anchor="middle" class="ax muted">26% выручки</text><line x1="641.0" x2="743.0" y1="203.1" y2="203.1" stroke="var(--axis)" stroke-dasharray="3 3"/><g class="hit" data-tip="Чистая прибыль: 7 590 000 ₽, рентабельность 20,4%"><rect x="743.0" y="203.1" width="110.0" height="32.9" rx="4" fill="var(--good)"/></g><text x="798.0" y="195.1" text-anchor="middle" class="lab">7,6 млн</text><text x="798.0" y="254" text-anchor="middle" class="ax">Чистая прибыль</text><text x="798.0" y="270" text-anchor="middle" class="ax muted">20% выручки</text></svg></div></div>
+  <div class="card"><h3>Операционные расходы по статьям</h3>
+    <div class="donutwrap"><svg class="donut" viewBox="0 0 220 220" role="img" aria-label="Структура расходов"><path class="hit" data-tip="Оплата труда и взносы: 5 340 000 ₽ за год, 54,7% расходов, в среднем 445 тыс ₽ в месяц" d="M111.32,4.01 A106.0,106.0 0 1 1 80.69,211.87 L91.83,173.16 A65.72,65.72 0 1 0 110.82,44.29 Z" fill="var(--s1)"/><path class="hit" data-tip="Аренда и содержание: 1 620 000 ₽ за год, 16,6% расходов, в среднем 135 тыс ₽ в месяц" d="M78.16,211.10 A106.0,106.0 0 0 1 7.27,136.11 L46.30,126.19 A65.72,65.72 0 0 0 90.26,172.68 Z" fill="var(--s2)"/><path class="hit" data-tip="Реклама и продвижение: 1 180 000 ₽ за год, 12,1% расходов, в среднем 98 тыс ₽ в месяц" d="M6.64,133.53 A106.0,106.0 0 0 1 17.49,58.25 L52.64,77.92 A65.72,65.72 0 0 0 45.92,124.59 Z" fill="var(--s3)"/><path class="hit" data-tip="Логистика: 780 000 ₽ за год, 8,0% расходов, в среднем 65 тыс ₽ в месяц" d="M18.81,55.95 A106.0,106.0 0 0 1 53.77,20.14 L75.14,54.29 A65.72,65.72 0 0 0 53.46,76.49 Z" fill="var(--s4)"/><path class="hit" data-tip="Прочие: 430 000 ₽ за год, 4,4% расходов, в среднем 36 тыс ₽ в месяц" d="M56.03,18.77 A106.0,106.0 0 0 1 80.44,8.20 L91.67,46.89 A65.72,65.72 0 0 0 76.54,53.43 Z" fill="var(--s5)"/><path class="hit" data-tip="ПО, связь, сервисы: 420 000 ₽ за год, 4,3% расходов, в среднем 35 тыс ₽ в месяц" d="M82.99,7.50 A106.0,106.0 0 0 1 108.68,4.01 L109.18,44.29 A65.72,65.72 0 0 0 93.26,46.45 Z" fill="var(--s6)"/><text x="110.0" y="104.0" text-anchor="middle" class="big">9,8 млн</text><text x="110.0" y="126.0" text-anchor="middle" class="ax">расходы за год</text></svg><div class="bars"><div class="bar hit" data-tip="Оплата труда и взносы: 5 340 000 ₽ за год, 54,7% расходов, в среднем 445 тыс ₽ в месяц"><div class="bar-h"><span class="dot" style="background:var(--s1)"></span><span class="bar-n">Оплата труда и взносы</span><span class="bar-v">5,3 млн<small> · 55%</small></span></div><div class="track"><div class="fill" style="width:100.0%;background:var(--s1)"></div></div></div><div class="bar hit" data-tip="Аренда и содержание: 1 620 000 ₽ за год, 16,6% расходов, в среднем 135 тыс ₽ в месяц"><div class="bar-h"><span class="dot" style="background:var(--s2)"></span><span class="bar-n">Аренда и содержание</span><span class="bar-v">1,6 млн<small> · 17%</small></span></div><div class="track"><div class="fill" style="width:30.3%;background:var(--s2)"></div></div></div><div class="bar hit" data-tip="Реклама и продвижение: 1 180 000 ₽ за год, 12,1% расходов, в среднем 98 тыс ₽ в месяц"><div class="bar-h"><span class="dot" style="background:var(--s3)"></span><span class="bar-n">Реклама и продвижение</span><span class="bar-v">1,2 млн<small> · 12%</small></span></div><div class="track"><div class="fill" style="width:22.1%;background:var(--s3)"></div></div></div><div class="bar hit" data-tip="Логистика: 780 000 ₽ за год, 8,0% расходов, в среднем 65 тыс ₽ в месяц"><div class="bar-h"><span class="dot" style="background:var(--s4)"></span><span class="bar-n">Логистика</span><span class="bar-v">780 тыс<small> · 8%</small></span></div><div class="track"><div class="fill" style="width:14.6%;background:var(--s4)"></div></div></div><div class="bar hit" data-tip="Прочие: 430 000 ₽ за год, 4,4% расходов, в среднем 36 тыс ₽ в месяц"><div class="bar-h"><span class="dot" style="background:var(--s5)"></span><span class="bar-n">Прочие</span><span class="bar-v">430 тыс<small> · 4%</small></span></div><div class="track"><div class="fill" style="width:8.1%;background:var(--s5)"></div></div></div><div class="bar hit" data-tip="ПО, связь, сервисы: 420 000 ₽ за год, 4,3% расходов, в среднем 35 тыс ₽ в месяц"><div class="bar-h"><span class="dot" style="background:var(--s6)"></span><span class="bar-n">ПО, связь, сервисы</span><span class="bar-v">420 тыс<small> · 4%</small></span></div><div class="track"><div class="fill" style="width:7.9%;background:var(--s6)"></div></div></div></div></div>
+    <div class="callout"><b>Оплата труда и взносы</b> - 55% всех расходов, 445 тыс ₽ в месяц.
+      Это 14,4% выручки: каждый новый сотрудник должен приносить больше, чем стоит.</div>
+  </div>
+</section>
 
-<div class="card">
-  <h2>Баланс на 31.08.2026</h2>
-  <p class="muted">Собирается из тех же проводок. Актив и пассив сходятся —
-     12 400 000 ₽.</p>
-  <div class="cols"><div><div class="tblbox"><table><thead><tr><th class="" data-k="статья">Актив</th><th class="num" data-k="сумма">₽</th></tr></thead><tbody><tr><td class="">Деньги на счетах и в кассе</td><td class="num">5 120 000</td></tr><tr><td class="">Дебиторская задолженность</td><td class="num">3 640 000</td></tr><tr><td class="">Запасы</td><td class="num">2 180 000</td></tr><tr><td class="">Основные средства</td><td class="num">1 460 000</td></tr></tbody><tfoot><tr><td>4 стр.</td><td class="num">12 400 000</td></tr></tfoot></table></div></div><div><div class="tblbox"><table><thead><tr><th class="" data-k="статья">Пассив</th><th class="num" data-k="сумма">₽</th></tr></thead><tbody><tr><td class="">Поставщики</td><td class="num">2 870 000</td></tr><tr><td class="">Налоги и взносы к уплате</td><td class="num">640 000</td></tr><tr><td class="">Займы</td><td class="num">1 500 000</td></tr><tr><td class="">Уставный капитал</td><td class="num">1 000 000</td></tr><tr><td class="">Нераспределённая прибыль</td><td class="num">6 390 000</td></tr></tbody><tfoot><tr><td>5 стр.</td><td class="num">12 400 000</td></tr></tfoot></table></div></div></div>
-</div>
+<section id="balans">
+  <div class="sechead"><h2>Баланс на 31.08.2026</h2>
+    <p class="muted">Что у компании есть и кому она должна. Собирается из тех же проводок; актив и пассив сходятся - 12 400 000 ₽.</p></div>
+  <div class="card">
+    <div class="bal"><div class="col"><h3>Актив</h3><div class="bars"><div class="bar hit" data-tip="Деньги на счетах и в кассе: 5 120 000 ₽, 41,3% актива"><div class="bar-h"><span class="bar-n">Деньги на счетах и в кассе</span><span class="bar-v">5 120 000</span></div><div class="track"><div class="fill" style="width:100.0%;background:var(--s1)"></div></div></div><div class="bar hit" data-tip="Дебиторская задолженность: 3 640 000 ₽, 29,4% актива"><div class="bar-h"><span class="bar-n">Дебиторская задолженность</span><span class="bar-v">3 640 000</span></div><div class="track"><div class="fill" style="width:71.1%;background:var(--s1)"></div></div></div><div class="bar hit" data-tip="Запасы: 2 180 000 ₽, 17,6% актива"><div class="bar-h"><span class="bar-n">Запасы</span><span class="bar-v">2 180 000</span></div><div class="track"><div class="fill" style="width:42.6%;background:var(--s1)"></div></div></div><div class="bar hit" data-tip="Основные средства: 1 460 000 ₽, 11,8% актива"><div class="bar-h"><span class="bar-n">Основные средства</span><span class="bar-v">1 460 000</span></div><div class="track"><div class="fill" style="width:28.5%;background:var(--s1)"></div></div></div></div><div class="total"><span>Итого</span><span>12 400 000 ₽</span></div></div><div class="col"><h3>Пассив</h3><div class="bars"><div class="bar hit" data-tip="Поставщики: 2 870 000 ₽, 23,1% пассива"><div class="bar-h"><span class="bar-n">Поставщики</span><span class="bar-v">2 870 000</span></div><div class="track"><div class="fill" style="width:44.9%;background:var(--s2)"></div></div></div><div class="bar hit" data-tip="Налоги и взносы к уплате: 640 000 ₽, 5,2% пассива"><div class="bar-h"><span class="bar-n">Налоги и взносы к уплате</span><span class="bar-v">640 000</span></div><div class="track"><div class="fill" style="width:10.0%;background:var(--s2)"></div></div></div><div class="bar hit" data-tip="Займы: 1 500 000 ₽, 12,1% пассива"><div class="bar-h"><span class="bar-n">Займы</span><span class="bar-v">1 500 000</span></div><div class="track"><div class="fill" style="width:23.5%;background:var(--s2)"></div></div></div><div class="bar hit" data-tip="Уставный капитал: 1 000 000 ₽, 8,1% пассива"><div class="bar-h"><span class="bar-n">Уставный капитал</span><span class="bar-v">1 000 000</span></div><div class="track"><div class="fill" style="width:15.6%;background:var(--s2)"></div></div></div><div class="bar hit" data-tip="Нераспределённая прибыль: 6 390 000 ₽, 51,5% пассива"><div class="bar-h"><span class="bar-n">Нераспределённая прибыль</span><span class="bar-v">6 390 000</span></div><div class="track"><div class="fill" style="width:100.0%;background:var(--s2)"></div></div></div></div><div class="total"><span>Итого</span><span>12 400 000 ₽</span></div></div></div>
+    <div class="ratios">
+      <div class="ratio"><div class="v">2,5×</div><div class="l">деньги и дебиторка покрывают долги поставщикам и налоговой</div></div>
+      <div class="ratio"><div class="v">60%</div><div class="l">собственных средств в активах; займы - 1,5 млн</div></div>
+      <div class="ratio"><div class="v">1,6 мес.</div><div class="l">платежей закрывает остаток на счетах без новых поступлений</div></div>
+    </div>
+  </div>
+</section>
 
-<div class="card">
-  <h2>Воронка продаж</h2>
-  <p class="muted">Тот же принцип, но по сделкам: сколько заявок дошло до денег.
-     Источником может быть CRM, таблица заявок или выгрузка из формы на сайте.</p>
-  <div class="chartbox"><svg class="chart" viewBox="0 0 760 178" width="760" height="178" role="img" preserveAspectRatio="xMinYMid meet"><line x1="168.0" x2="168.0" y1="6" y2="156" stroke="var(--axis)" stroke-width="1"/><text x="168.0" y="171" text-anchor="middle" fill="var(--muted)" font-size="11">0</text><line x1="273.6" x2="273.6" y1="6" y2="156" stroke="var(--grid)" stroke-width="1"/><text x="273.6" y="171" text-anchor="middle" fill="var(--muted)" font-size="11">250</text><line x1="379.2" x2="379.2" y1="6" y2="156" stroke="var(--grid)" stroke-width="1"/><text x="379.2" y="171" text-anchor="middle" fill="var(--muted)" font-size="11">500</text><line x1="484.8" x2="484.8" y1="6" y2="156" stroke="var(--grid)" stroke-width="1"/><text x="484.8" y="171" text-anchor="middle" fill="var(--muted)" font-size="11">750</text><line x1="590.4" x2="590.4" y1="6" y2="156" stroke="var(--grid)" stroke-width="1"/><text x="590.4" y="171" text-anchor="middle" fill="var(--muted)" font-size="11">1 тыс</text><line x1="696.0" x2="696.0" y1="6" y2="156" stroke="var(--grid)" stroke-width="1"/><text x="696.0" y="171" text-anchor="middle" fill="var(--muted)" font-size="11">1 тыс</text><text x="158" y="24" text-anchor="end" fill="var(--ink2)" font-size="12">Заявки</text><rect x="168" y="11" width="523.8" height="16" rx="4" fill="var(--s1)"><title>Заявки: 1240 шт на 74 400 000 ₽, 100,0% от заявок</title></rect><text x="699.8" y="24" fill="var(--ink2)" font-size="12">1 240</text><text x="158" y="54" text-anchor="end" fill="var(--ink2)" font-size="12">Квалифицированы</text><rect x="168" y="41" width="329.5" height="16" rx="4" fill="var(--s1)"><title>Квалифицированы: 780 шт на 48 900 000 ₽, 62,9% от заявок</title></rect><text x="505.5" y="54" fill="var(--ink2)" font-size="12">780</text><text x="158" y="84" text-anchor="end" fill="var(--ink2)" font-size="12">Отправлено КП</text><rect x="168" y="71" width="181.6" height="16" rx="4" fill="var(--s1)"><title>Отправлено КП: 430 шт на 29 100 000 ₽, 34,7% от заявок</title></rect><text x="357.6" y="84" fill="var(--ink2)" font-size="12">430</text><text x="158" y="114" text-anchor="end" fill="var(--ink2)" font-size="12">Договор подписан</text><rect x="168" y="101" width="88.7" height="16" rx="4" fill="var(--s1)"><title>Договор подписан: 210 шт на 15 600 000 ₽, 16,9% от заявок</title></rect><text x="264.7" y="114" fill="var(--ink2)" font-size="12">210</text><text x="158" y="144" text-anchor="end" fill="var(--ink2)" font-size="12">Оплачено</text><rect x="168" y="131" width="71.0" height="16" rx="4" fill="var(--good)"><title>Оплачено: 168 шт на 12 400 000 ₽, 13,5% от заявок</title></rect><text x="247.0" y="144" fill="var(--ink2)" font-size="12">168</text></svg></div><div class="tblbox"><table><thead><tr><th class="" data-k="этап">Этап</th><th class="num" data-k="штук">Сделок</th><th class="" data-k="конверсия">От заявок</th><th class="num" data-k="сумма">Сумма, ₽</th></tr></thead><tbody><tr><td class="">Заявки</td><td class="num">1 240</td><td class="">100,0%</td><td class="num">74 400 000</td></tr><tr><td class="">Квалифицированы</td><td class="num">780</td><td class="">62,9%</td><td class="num">48 900 000</td></tr><tr><td class="">Отправлено КП</td><td class="num">430</td><td class="">34,7%</td><td class="num">29 100 000</td></tr><tr><td class="">Договор подписан</td><td class="num">210</td><td class="">16,9%</td><td class="num">15 600 000</td></tr><tr><td class="">Оплачено</td><td class="num">168</td><td class="">13,5%</td><td class="num">12 400 000</td></tr></tbody></table></div>
-</div>
+<section id="prodazhi">
+  <div class="sechead"><h2>Воронка продаж</h2>
+    <p class="muted">Сколько заявок дошло до денег. Источник - CRM, таблица заявок или форма на сайте.</p></div>
+  <div class="card">
+    <div class="chartbox"><svg class="chart" viewBox="0 0 920 300" role="img" aria-label="Воронка продаж"><g class="hit" data-tip="Заявки: 1 240 сделок на 74 400 000 ₽, 100,0% от заявок"><rect x="200" y="16.0" width="600" height="53.6" fill="transparent"/><rect x="200.0" y="23.0" width="600.0" height="39.7" rx="6" fill="var(--s1)" opacity="1.00"/></g><text x="500.0" y="47.8" text-anchor="middle" class="onfill">1 240</text><text x="184" y="39.8" text-anchor="end" class="lab">Заявки</text><text x="184" y="55.8" text-anchor="end" class="ax">74,4 млн ₽</text><text x="816" y="39.8" class="lab">100%</text><text x="816" y="55.8" class="ax">от заявок</text><g class="hit" data-tip="Квалифицированы: 780 сделок на 48 900 000 ₽, 62,9% от заявок, 62,9% от предыдущего этапа"><rect x="200" y="69.6" width="600" height="53.6" fill="transparent"/><rect x="311.3" y="76.6" width="377.4" height="39.7" rx="6" fill="var(--s1)" opacity="0.86"/></g><text x="500.0" y="101.4" text-anchor="middle" class="onfill">780</text><text x="184" y="93.4" text-anchor="end" class="lab">Квалифицированы</text><text x="184" y="109.4" text-anchor="end" class="ax">48,9 млн ₽</text><text x="816" y="93.4" class="lab">63%</text><text x="816" y="109.4" class="ax">от заявок</text><text x="500.0" y="71.6" text-anchor="middle" class="ax">↓ 63%</text><g class="hit" data-tip="Отправлено КП: 430 сделок на 29 100 000 ₽, 34,7% от заявок, 55,1% от предыдущего этапа"><rect x="200" y="123.2" width="600" height="53.6" fill="transparent"/><rect x="396.0" y="130.2" width="208.1" height="39.7" rx="6" fill="var(--s1)" opacity="0.72"/></g><text x="500.0" y="155.0" text-anchor="middle" class="onfill">430</text><text x="184" y="147.0" text-anchor="end" class="lab">Отправлено КП</text><text x="184" y="163.0" text-anchor="end" class="ax">29,1 млн ₽</text><text x="816" y="147.0" class="lab">35%</text><text x="816" y="163.0" class="ax">от заявок</text><text x="500.0" y="125.2" text-anchor="middle" class="ax">↓ 55%</text><g class="hit" data-tip="Договор подписан: 210 сделок на 15 600 000 ₽, 16,9% от заявок, 48,8% от предыдущего этапа"><rect x="200" y="176.8" width="600" height="53.6" fill="transparent"/><rect x="449.2" y="183.8" width="101.6" height="39.7" rx="6" fill="var(--s1)" opacity="0.58"/></g><text x="500.0" y="208.6" text-anchor="middle" class="lab">210</text><text x="184" y="200.6" text-anchor="end" class="lab">Договор подписан</text><text x="184" y="216.6" text-anchor="end" class="ax">15,6 млн ₽</text><text x="816" y="200.6" class="lab">17%</text><text x="816" y="216.6" class="ax">от заявок</text><text x="500.0" y="178.8" text-anchor="middle" class="ax">↓ 49%</text><g class="hit" data-tip="Оплачено: 168 сделок на 12 400 000 ₽, 13,5% от заявок, 80,0% от предыдущего этапа"><rect x="200" y="230.4" width="600" height="53.6" fill="transparent"/><rect x="459.4" y="237.4" width="81.3" height="39.7" rx="6" fill="var(--good)" opacity="1.00"/></g><text x="500.0" y="262.2" text-anchor="middle" class="lab">168</text><text x="184" y="254.2" text-anchor="end" class="lab">Оплачено</text><text x="184" y="270.2" text-anchor="end" class="ax">12,4 млн ₽</text><text x="816" y="254.2" class="lab">14%</text><text x="816" y="270.2" class="ax">от заявок</text><text x="500.0" y="232.4" text-anchor="middle" class="ax">↓ 80%</text></svg></div>
+    <div class="ratios">
+      <div class="ratio"><div class="v">13,5%</div><div class="l">заявок превращаются в оплату</div></div>
+      <div class="ratio"><div class="v">74 тыс ₽</div><div class="l">средний чек оплаченной сделки</div></div>
+      <div class="ratio"><div class="v">49%</div><div class="l">самое узкое место: «Отправлено КП» → «Договор подписан»</div></div>
+    </div>
+    <div class="callout"><b>Где теряем больше всего:</b> после отправки КП до договора доходит меньше половины.
+      Здесь одно напоминание менеджеру через два дня даёт больше, чем новая реклама.</div>
+  </div>
+  <details class="tbl"><summary>Цифры таблицей: воронка<span class="arrow"></span></summary><div class="body"><div class="tblbox"><table><thead><tr><th class="">Этап</th><th class="num">Сделок</th><th class="">От заявок</th><th class="num">Сумма, ₽</th></tr></thead><tbody><tr><td>Заявки</td><td class="num">1 240</td><td class="num">100,0%</td><td class="num">74 400 000</td></tr><tr><td>Квалифицированы</td><td class="num">780</td><td class="num">62,9%</td><td class="num">48 900 000</td></tr><tr><td>Отправлено КП</td><td class="num">430</td><td class="num">34,7%</td><td class="num">29 100 000</td></tr><tr><td>Договор подписан</td><td class="num">210</td><td class="num">16,9%</td><td class="num">15 600 000</td></tr><tr><td>Оплачено</td><td class="num">168</td><td class="num">13,5%</td><td class="num">12 400 000</td></tr></tbody></table></div></div></details>
+</section>
 
-<div class="note">Как это устроено: данные остаются там, где они есть (Google Таблицы, 1С, CRM, банк).
-  Сборка забирает их по расписанию, считает и складывает готовый файл. Обновление — само,
-  раз в сутки или по кнопке. Ничего не выгружается в сторонние облака и не требует лицензий.</div>
+<section id="kak">
+  <div class="sechead"><h2>Как это устроено</h2>
+    <p class="muted">Данные остаются там, где они есть. Ничего не переносится в чужие облака и не требует лицензий.</p></div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><b>Источники как есть</b><span>Google Таблицы, 1С, банк, CRM, МойСклад. Ничего не перепечатывается руками.</span></div>
+    <div class="step"><div class="n">2</div><b>Сборка по расписанию</b><span>Раз в сутки или по кнопке скрипт забирает данные, сверяет (баланс сходится, остаток равен выписке) и считает показатели.</span></div>
+    <div class="step"><div class="n">3</div><b>Один файл</b><span>Готовая страница уходит в Telegram или открывается по ссылке. Работает на телефоне без интернета и без входа.</span></div>
+    <div class="step"><div class="n">4</div><b>Выводы словами</b><span>Не только графики: что выросло, где узкое место, сколько месяцев хватит денег. Собственник читает минуту, а не час.</span></div>
+  </div>
+  <div class="cta">
+    <div><b>Хотите такой же по своим данным?</b><span>Напишите, что в учёте или отчётах забирает больше всего времени. Отвечу, что из этого можно убрать и как будет выглядеть ваш экран.</span></div>
+    <div><a class="btn" href="https://vk.ru/pyankov_vv">Написать во ВКонтакте</a> <a class="btn o" href="index.html">Другие примеры</a></div>
+  </div>
+</section>
+<footer><span>Страница-витрина. Компания, суммы и контрагенты вымышленные.</span><span>Один HTML-файл, без внешних скриптов и шрифтов.</span></footer>
 </div>
 <script>
-document.getElementById('theme')?.addEventListener('click',function(){
-  var d=document.documentElement.getAttribute('data-theme')==='dark' ||
-    (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.setAttribute('data-theme', d?'light':'dark');
-});
+(function(){
+  var root=document.documentElement;
+  try{var saved=localStorage.getItem('theme');if(saved)root.setAttribute('data-theme',saved);}catch(e){}
+  var b=document.getElementById('theme');
+  function isDark(){var t=root.getAttribute('data-theme');return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;}
+  function label(){b.textContent=isDark()?'☀ светлая тема':'☾ тёмная тема';}
+  if(b){label();b.addEventListener('click',function(){var n=isDark()?'light':'dark';root.setAttribute('data-theme',n);
+    try{localStorage.setItem('theme',n);}catch(e){}label();});}
+  /* подсказки */
+  var tt=document.createElement('div');tt.className='tt';document.body.appendChild(tt);
+  function show(e,el){tt.textContent=el.getAttribute('data-tip');tt.style.opacity=1;move(e);}
+  function move(e){var x=e.clientX+14,y=e.clientY+16;var w=tt.offsetWidth,h=tt.offsetHeight;
+    if(x+w>innerWidth-8)x=e.clientX-w-10;if(y+h>innerHeight-8)y=e.clientY-h-10;tt.style.left=x+'px';tt.style.top=y+'px';}
+  document.querySelectorAll('[data-tip]').forEach(function(el){
+    el.addEventListener('mouseenter',function(e){show(e,el)});el.addEventListener('mousemove',move);
+    el.addEventListener('mouseleave',function(){tt.style.opacity=0});
+    el.addEventListener('click',function(e){show(e,el)});
+  });
+  /* подсветка раздела в меню */
+  var links=[].slice.call(document.querySelectorAll('nav.sections a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+  if('IntersectionObserver' in window&&secs.length){
+    var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){
+      links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id)});}})},{rootMargin:'-30% 0px -60% 0px'});
+    secs.forEach(function(s){io.observe(s)});
+  }
+})();
 </script>
 </body>
 </html>
